@@ -207,9 +207,10 @@ def make_request(rng: random.Random, n: int, category: str | None = None) -> Hel
     )
 
 
-def generate(count: int, seed: int = 0) -> list[HelpRequest]:
-    """Balanced across categories so every cause is represented."""
+def generate(count: int, seed: int = 0, categories: list[str] | None = None) -> list[HelpRequest]:
+    """Balanced across the given categories (all of them by default)."""
     rng = random.Random(seed)
-    cats = [CATEGORIES[i % len(CATEGORIES)] for i in range(count)]
+    pool = categories or CATEGORIES
+    cats = [pool[i % len(pool)] for i in range(count)]
     rng.shuffle(cats)
     return [make_request(rng, seed * 100000 + i, c) for i, c in enumerate(cats)]

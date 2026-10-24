@@ -1,0 +1,233 @@
+[
+ {
+  "model": "claude-sonnet-4-5",
+  "incidents": 40,
+  "correct_advice": 0.9,
+  "unsafe_advice_blocked": 0,
+  "escalated_to_human": 0.4,
+  "no_advice": 0,
+  "transport_errors": 0,
+  "latency_p50_s": 9.53,
+  "latency_p90_s": 12.3,
+  "steps_avg": 2.375,
+  "tokens_in_avg": 3610.5,
+  "tokens_out_avg": 418.675,
+  "usd_per_1000_incidents": 17.111625,
+  "by_category": {
+   "conflicting_reports": "2/4",
+   "construction_closure": "2/4",
+   "debris_large": "4/4",
+   "debris_small": "4/4",
+   "double_parked_abandoned": "4/4",
+   "double_parked_short": "4/4",
+   "emergency_vehicle": "4/4",
+   "police_hand_signals": "4/4",
+   "rider_safety": "4/4",
+   "sensor_degraded": "4/4"
+  },
+  "misses": [
+   {
+    "incident": "INC-6100001",
+    "category": "construction_closure",
+    "expected": "mark_zone_closed",
+    "advised": "reroute",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702d381a71519afe4cc5512fba84",
+     "mreq_01a1702d400a76d2a1c37e54f33175b4",
+     "mreq_01a1702d46f77e10927844c802abedb5"
+    ]
+   },
+   {
+    "incident": "INC-6100013",
+    "category": "conflicting_reports",
+    "expected": "request_human",
+    "advised": "dispatch_event_response",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702d84897af08687051479ccd4df",
+     "mreq_01a1702d8d577e10b7653247558cf8b6"
+    ]
+   },
+   {
+    "incident": "INC-6100028",
+    "category": "construction_closure",
+    "expected": "mark_zone_closed",
+    "advised": "reroute",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702df70b7323a34014dd9be12b8b",
+     "mreq_01a1702dfefd7241a2870ef767037c1f",
+     "mreq_01a1702e05a67223b71442df309c5479"
+    ]
+   },
+   {
+    "incident": "INC-6100031",
+    "category": "conflicting_reports",
+    "expected": "request_human",
+    "advised": "dispatch_event_response",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e0a997bc38b9a116a57f7af99",
+     "mreq_01a1702e12ee7692b91c8070aed71f9b"
+    ]
+   }
+  ]
+ },
+ {
+  "model": "claude-haiku-4-5",
+  "incidents": 40,
+  "correct_advice": 0.725,
+  "unsafe_advice_blocked": 1,
+  "escalated_to_human": 0.425,
+  "no_advice": 0,
+  "transport_errors": 0,
+  "latency_p50_s": 5.28,
+  "latency_p90_s": 6.82,
+  "steps_avg": 2.175,
+  "tokens_in_avg": 3295.8,
+  "tokens_out_avg": 436.85,
+  "usd_per_1000_incidents": 5.48005,
+  "by_category": {
+   "conflicting_reports": "1/4",
+   "construction_closure": "2/4",
+   "debris_large": "1/4",
+   "debris_small": "4/4",
+   "double_parked_abandoned": "3/4",
+   "double_parked_short": "3/4",
+   "emergency_vehicle": "3/4",
+   "police_hand_signals": "4/4",
+   "rider_safety": "4/4",
+   "sensor_degraded": "4/4"
+  },
+  "misses": [
+   {
+    "incident": "INC-6100000",
+    "category": "construction_closure",
+    "expected": "mark_zone_closed",
+    "advised": "reroute",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e70ef7ff3b4d737da12f962c2",
+     "mreq_01a1702e77c07762ac74ef9ef400094c",
+     "mreq_01a1702e813b78c2a0d8512e3774caf4"
+    ]
+   },
+   {
+    "incident": "INC-6100005",
+    "category": "debris_large",
+    "expected": "reroute",
+    "advised": "proceed_with_caution",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e7f6075d390a548bdec0a3fb5",
+     "mreq_01a1702e85307a02a74b6ba552d1c174"
+    ]
+   },
+   {
+    "incident": "INC-6100008",
+    "category": "conflicting_reports",
+    "expected": "request_human",
+    "advised": "dispatch_event_response",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e87207730b903c02e02df7e4d",
+     "mreq_01a1702e8d4d74c089c33df97331703d"
+    ]
+   },
+   {
+    "incident": "INC-6100010",
+    "category": "debris_large",
+    "expected": "reroute",
+    "advised": "proceed_with_caution",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e94057880aa1cae1371f578a8",
+     "mreq_01a1702e9a4b72f2809136625f8c6174",
+     "mreq_01a1702ea76c76e28349a29a8e7302eb"
+    ]
+   },
+   {
+    "incident": "INC-6100013",
+    "category": "conflicting_reports",
+    "expected": "request_human",
+    "advised": "dispatch_event_response",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702e9d4e7953ab1e4cbb7ae8c5fd",
+     "mreq_01a1702ea39f7d638e9105d8bc15b5ee"
+    ]
+   },
+   {
+    "incident": "INC-6100016",
+    "category": "double_parked_abandoned",
+    "expected": "reroute",
+    "advised": "wait",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702eb00874c2aeab28cb85b700b6",
+     "mreq_01a1702eb6217b00a8f12d8d05faa664"
+    ]
+   },
+   {
+    "incident": "INC-6100018",
+    "category": "emergency_vehicle",
+    "expected": "wait",
+    "advised": "wait",
+    "violations": [
+     "wait_seconds must be between 1 and 600"
+    ],
+    "request_ids": [
+     "mreq_01a1702eb1b67ba0948887307ede8867",
+     "mreq_01a1702eb7d874828578b605f14ef3de"
+    ]
+   },
+   {
+    "incident": "INC-6100020",
+    "category": "debris_large",
+    "expected": "reroute",
+    "advised": "proceed_with_caution",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702ec3ba7040bc19a2acf55d9505",
+     "mreq_01a1702eca0d7f11815bedc14ce56251"
+    ]
+   },
+   {
+    "incident": "INC-6100027",
+    "category": "construction_closure",
+    "expected": "mark_zone_closed",
+    "advised": "reroute",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702ed90173e087056fd248217566",
+     "mreq_01a1702edfdf7d83a5aee4f303e004d3",
+     "mreq_01a1702ee7b575c1b41c5e28a43a1936"
+    ]
+   },
+   {
+    "incident": "INC-6100029",
+    "category": "double_parked_short",
+    "expected": "wait",
+    "advised": "reroute",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702edd057ca1a2f3a1a56cc19ed8",
+     "mreq_01a1702ee2977de381d83e99853b7c01",
+     "mreq_01a1702eeede7900a0423dc2a904af3a"
+    ]
+   },
+   {
+    "incident": "INC-6100031",
+    "category": "conflicting_reports",
+    "expected": "request_human",
+    "advised": "dispatch_event_response",
+    "violations": [],
+    "request_ids": [
+     "mreq_01a1702eed4d7b41a4e9241a62323acd",
+     "mreq_01a1702ef3627ef3a4e20e8f389e2cf6"
+    ]
+   }
+  ]
+ }
+]

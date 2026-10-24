@@ -12,7 +12,7 @@ import json
 import time
 from dataclasses import dataclass, field
 
-from .mubit import client
+from .mubit import create, record_headers
 from .scenarios import ACTIONS, POLICY, HelpRequest
 from .world import World, world_for
 
@@ -111,6 +111,9 @@ class Outcome:
     output_tokens: int
     latency_s: float
     error: str | None = None
+    request_ids: list[str] = field(default_factory=list)
+    served_models: list[str] = field(default_factory=list)
+    sensitive: bool = False
     transcript: list = field(default_factory=list, repr=False)
 
 
@@ -125,13 +128,19 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
     advice = None
     error = None
     steps = 0
+    request_ids: list[str] = []
+    served: list[str] = []
+    # A rider asking for help writes about their own health or safety: keep that text out of Mubit's records.
+    sensitive = req.planner_status.startswith("stopped: rider requested assistance")
     try:
         for steps in range(1, MAX_STEPS + 1):
-            resp = client.messages.create(
+            resp, request_id = create(
                 model=model, max_tokens=500, system=SYSTEM, tools=TOOLS, messages=messages,
                 metadata={"user_id": req.incident_id},
-                extra_headers={} if store else {"x-middleware-store": "false"},
+                extra_headers=record_headers(store, sensitive),
             )
+            request_ids.append(request_id)
+            served.append(resp.model)
             tin += resp.usage.input_tokens
             tout += resp.usage.output_tokens
             messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in resp.content]})
@@ -162,4 +171,4 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
 
     correct = (advice is not None and not violations and advice.get("action") == POLICY[req.truth.category][2])
     return Outcome(req.incident_id, model, advice, violations, final, correct, steps, tools_called,
-                   tin, tout, round(time.perf_counter() - t0, 2), error, messages)
+                   tin, tout, round(time.perf_counter() - t0, 2), error, request_ids, served, sensitive, messages)

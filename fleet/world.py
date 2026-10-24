@@ -58,9 +58,11 @@ def world_for(req: HelpRequest) -> World:
 
     events: list[dict] = []
     closed: set[str] = set()
-    # Half the time, another vehicle has just closed a zone on the fastest route: only the fleet's shared
-    # reports reveal it. The other routes stay open so a safe choice always exists.
-    if rng.random() < 0.5:
+    # Often another vehicle has just closed a zone on the fastest route: only the fleet's shared reports
+    # reveal it. It matters most when the right advice is to reroute, so it is likeliest there. The other
+    # routes stay open so a safe choice always exists.
+    trap_rate = 0.8 if req.truth.action == "reroute" else 0.4
+    if rng.random() < trap_rate:
         bad = routes[0]["zones"][0]
         others = {z for r in routes[1:] for z in r["zones"]}
         if bad not in others:

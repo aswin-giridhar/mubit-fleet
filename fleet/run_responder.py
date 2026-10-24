@@ -28,9 +28,10 @@ def main() -> None:
     ap.add_argument("--model", default=TEACHER)
     ap.add_argument("--pilot", action="store_true", help="send x-middleware-store: false")
     ap.add_argument("--workers", type=int, default=5)
+    ap.add_argument("--categories", default="", help="comma-separated subset, e.g. debris_large,double_parked_abandoned")
     args = ap.parse_args()
 
-    reqs = generate(args.count, seed=args.seed)
+    reqs = generate(args.count, seed=args.seed, categories=[c for c in args.categories.split(",") if c] or None)
     with ThreadPoolExecutor(args.workers) as pool:
         outs = list(pool.map(lambda r: respond(r, model=args.model, store=not args.pilot), reqs))
 
