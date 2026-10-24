@@ -1,0 +1,23 @@
+# Private working notes — never committed
+context/
+.remember/
+
+# Secrets (copy .env.example to .env)
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Raw run logs (curated results go in results/)
+runs/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+nul
