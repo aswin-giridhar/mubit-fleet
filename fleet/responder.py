@@ -117,8 +117,18 @@ class Outcome:
     transcript: list = field(default_factory=list, repr=False)
 
 
-def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
+def respond(req: HelpRequest, *, model: str, store: bool = True, on_event=None,
+            inject_fault: bool = False) -> Outcome:
+    """Run one incident. on_event(dict) receives each step as it happens (the demo view streams these).
+
+    inject_fault replaces the agent's advice with the fastest route, whatever it is, to demonstrate the
+    validator on demand. It is labelled as injected wherever it is shown.
+    """
+    emit = on_event or (lambda e: None)
     world = world_for(req)
+    emit({"t": "incident", "incident_id": req.incident_id, "vehicle_id": req.vehicle_id, "zone": req.zone,
+          "model": model, "routes": world.route_options, "reports": world.recent_events,
+          "closed_zones": sorted(world.closed_zones)})
     alert = {"incident_id": req.incident_id, "vehicle_id": req.vehicle_id, "zone": req.zone,
              "alert": "vehicle stopped and requested remote assistance"}
     messages: list[dict] = [{"role": "user", "content": json.dumps(alert)}]
@@ -134,6 +144,8 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
     sensitive = req.planner_status.startswith("stopped: rider requested assistance")
     try:
         for steps in range(1, MAX_STEPS + 1):
+            emit({"t": "thinking", "step": steps})
+            t_call = time.perf_counter()
             resp, request_id = create(
                 model=model, max_tokens=500, system=SYSTEM, tools=TOOLS, messages=messages,
                 metadata={"user_id": req.incident_id},
@@ -141,6 +153,9 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
             )
             request_ids.append(request_id)
             served.append(resp.model)
+            emit({"t": "reply", "step": steps, "latency_s": round(time.perf_counter() - t_call, 2),
+                  "request_id": request_id, "served_model": resp.model,
+                  "tokens_in": resp.usage.input_tokens, "tokens_out": resp.usage.output_tokens})
             tin += resp.usage.input_tokens
             tout += resp.usage.output_tokens
             messages.append({"role": "assistant", "content": [b.model_dump(exclude_none=True) for b in resp.content]})
@@ -150,17 +165,24 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
             results = []
             for u in uses:
                 tools_called.append(u.name)
+                emit({"t": "tool", "name": u.name, "input": dict(u.input)})
                 if u.name == "submit_advice":
                     advice = dict(u.input)
                     results.append({"type": "tool_result", "tool_use_id": u.id, "content": "advice received"})
                 else:
-                    results.append({"type": "tool_result", "tool_use_id": u.id,
-                                    "content": json.dumps(_tool_result(u.name, req, world))})
+                    result = _tool_result(u.name, req, world)
+                    emit({"t": "result", "name": u.name, "result": result})
+                    results.append({"type": "tool_result", "tool_use_id": u.id, "content": json.dumps(result)})
             messages.append({"role": "user", "content": results})
             if advice is not None:
                 break
     except Exception as exc:  # a gateway/transport failure is not a wrong answer: record it as such
         error = f"{type(exc).__name__}: {str(exc)[:200]}"
+
+    if inject_fault and advice is not None:
+        emit({"t": "fault", "original": advice})
+        fastest = world.route_options[0]["route_id"]
+        advice = {"action": "reroute", "route_id": fastest, "reason": "Injected fault: take the fastest route."}
 
     if advice is None:
         violations = ["no advice submitted"]
@@ -170,5 +192,8 @@ def respond(req: HelpRequest, *, model: str, store: bool = True) -> Outcome:
         final = "request_human" if violations else advice["action"]
 
     correct = (advice is not None and not violations and advice.get("action") == POLICY[req.truth.category][2])
+    emit({"t": "verdict", "advice": advice, "violations": violations, "final_action": final,
+          "correct": correct, "expected": POLICY[req.truth.category][2], "category": req.truth.category,
+          "injected": inject_fault, "error": error})
     return Outcome(req.incident_id, model, advice, violations, final, correct, steps, tools_called,
                    tin, tout, round(time.perf_counter() - t0, 2), error, request_ids, served, sensitive, messages)

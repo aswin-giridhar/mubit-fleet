@@ -2,7 +2,7 @@
 
 **An AI first responder for stuck autonomous vehicles. Advice, not control. Every step distilled by Mubit into the fleet's own model.**
 
-Built at Mubit Night Shift (London, 24–25 Oct 2026).
+Built at Mubit Night Shift (London, 24-25 Oct 2026).
 
 ## The problem
 

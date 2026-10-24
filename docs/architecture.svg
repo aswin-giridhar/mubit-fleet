@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 860" width="1600" height="860" role="img" aria-labelledby="t d">
+  <title id="t">Fleet Response copilot architecture</title>
+  <desc id="d">A stuck vehicle sends an alert to the copilot. Triage and the responder agent call models through Mubit, which records calls, groups them into tasks and rolls out adapters. The agent's advice goes to a code validator, which lets the vehicle act or escalates to a human.</desc>
+  <defs>
+    <style>
+      .bg { fill: #2E3438; }
+      .panel { fill: #3B4246; }
+      .inner { fill: #2E3438; }
+      .h { font-family: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; font-weight: 700; fill: #E8EBE4; }
+      .t { font-family: Barlow, Arial, sans-serif; font-weight: 400; fill: #E8EBE4; }
+      .s { font-family: Barlow, Arial, sans-serif; font-weight: 400; fill: #9AA39E; }
+      .code { font-family: Barlow, Arial, sans-serif; font-weight: 500; fill: #F2B33D; }
+      .wire { stroke: #9AA39E; stroke-width: 2.5; fill: none; }
+      .agentwire { stroke: #F2B33D; stroke-width: 3; fill: none; }
+      .dash { stroke-dasharray: 8 7; }
+    </style>
+    <pattern id="hatch" patternUnits="userSpaceOnUse" width="22" height="22"><rect width="22" height="22" fill="#2E3438"/><path d="M0 0 H11 L0 11 Z M22 0 V11 L11 22 H0 Z" fill="#F2B33D"/></pattern>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9AA39E"/>
+    </marker>
+    <marker id="ahv" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#F2B33D"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1600" height="860"/>
+
+  <text class="h" x="60" y="78" font-size="44">How one help request flows</text>
+  <text class="s" x="60" y="112" font-size="20">The model proposes. Code decides. Mubit learns a small model for each repeated task.</text>
+
+  <!-- Stuck vehicle -->
+  <rect class="panel" x="60" y="160" width="260" height="130" rx="4"/>
+  <text class="h" x="84" y="202" font-size="28">Stuck vehicle</text>
+  <text class="t" x="84" y="234" font-size="18">Sends an alert: incident,</text>
+  <text class="t" x="84" y="258" font-size="18">vehicle and zone</text>
+
+  <!-- Simulated city -->
+  <rect class="panel" x="60" y="330" width="260" height="250" rx="4"/>
+  <text class="h" x="84" y="372" font-size="28">Simulated city</text>
+  <text class="t" x="84" y="406" font-size="18">Incident generator</text>
+  <text class="s" x="84" y="430" font-size="16">hidden cause, messy evidence</text>
+  <text class="t" x="84" y="468" font-size="18">City model</text>
+  <text class="s" x="84" y="492" font-size="16">routes, other vehicles' reports</text>
+  <rect x="84" y="512" width="110" height="44" rx="4" fill="url(#hatch)"/>
+  <text class="s" x="206" y="540" font-size="16">a closed zone</text>
+
+  <!-- Copilot -->
+  <rect class="panel" x="400" y="160" width="420" height="420" rx="4" stroke="#F2B33D" stroke-width="3"/>
+  <text class="h" x="428" y="202" font-size="30">Fleet Response copilot</text>
+
+  <rect class="inner" x="428" y="224" width="364" height="84" rx="4"/>
+  <text class="h" x="448" y="258" font-size="24">Triage</text>
+  <text class="s" x="448" y="286" font-size="16">Mubit task 1: one of ten incident types</text>
+
+  <rect class="inner" x="428" y="324" width="364" height="108" rx="4"/>
+  <text class="h" x="448" y="358" font-size="24">Responder agent</text>
+  <text class="s" x="448" y="386" font-size="16">Mubit task 2: investigates with tools,</text>
+  <text class="s" x="448" y="410" font-size="16">then calls submit_advice once</text>
+
+  <rect class="inner" x="428" y="448" width="364" height="118" rx="4"/>
+  <text class="h" x="448" y="480" font-size="22">Tools</text>
+  <text class="code" x="448" y="508" font-size="16">get_vehicle_state</text>
+  <text class="code" x="620" y="508" font-size="16">get_messages</text>
+  <text class="code" x="448" y="532" font-size="16">get_camera_caption</text>
+  <text class="code" x="620" y="532" font-size="16">get_route_options</text>
+  <text class="code" x="448" y="554" font-size="16">get_recent_events</text>
+
+  <!-- Mubit -->
+  <rect class="panel" x="900" y="160" width="320" height="330" rx="4"/>
+  <text class="h" x="924" y="202" font-size="30">Mubit</text>
+  <text class="t" x="924" y="238" font-size="18">Gateway records every call</text>
+  <text class="s" x="924" y="262" font-size="16">request ID, session = incident ID</text>
+  <text class="t" x="924" y="302" font-size="18">Tasks</text>
+  <text class="s" x="924" y="326" font-size="16">model + prompt + tools + format</text>
+  <text class="t" x="924" y="366" font-size="18">Adapter rollout</text>
+  <rect class="inner" x="924" y="384" width="82" height="40" rx="4"/>
+  <text class="s" x="934" y="410" font-size="15">silent test</text>
+  <rect class="inner" x="1030" y="384" width="74" height="40" rx="4"/>
+  <text class="s" x="1042" y="410" font-size="15">canary</text>
+  <rect class="inner" x="1128" y="384" width="68" height="40" rx="4"/>
+  <text class="s" x="1146" y="410" font-size="15">live</text>
+  <path class="wire" d="M1006 404 H1026" marker-end="url(#ah)"/>
+  <path class="wire" d="M1104 404 H1124" marker-end="url(#ah)"/>
+  <text class="s" x="924" y="464" font-size="15">rider help requests: metadata only</text>
+
+  <!-- Provider -->
+  <rect class="panel" x="1300" y="160" width="240" height="130" rx="4"/>
+  <text class="h" x="1324" y="202" font-size="26">Provider model</text>
+  <text class="t" x="1324" y="234" font-size="18">Claude Sonnet 4.5</text>
+  <text class="t" x="1324" y="258" font-size="18">or Haiku 4.5</text>
+
+  <!-- Validator -->
+  <rect class="panel" x="900" y="540" width="320" height="180" rx="4"/>
+  <rect x="900" y="540" width="320" height="16" rx="2" fill="url(#hatch)"/>
+  <text class="h" x="924" y="594" font-size="28">Validator (code)</text>
+  <text class="t" x="924" y="626" font-size="17">No route into a closed zone</text>
+  <text class="t" x="924" y="650" font-size="17">The route must exist</text>
+  <text class="t" x="924" y="674" font-size="17">Wait between 1 and 600 s</text>
+  <text class="t" x="924" y="698" font-size="17">No motion on degraded sensors</text>
+
+  <!-- Outcomes -->
+  <rect class="panel" x="1300" y="540" width="240" height="80" rx="4" stroke="#7CC5A1" stroke-width="3"/>
+  <text class="h" x="1324" y="576" font-size="24" fill="#7CC5A1" style="fill:#7CC5A1">Vehicle acts</text>
+  <text class="s" x="1324" y="602" font-size="15">advice passed every rule</text>
+  <rect class="panel" x="1300" y="640" width="240" height="80" rx="4" stroke="#E5624B" stroke-width="3"/>
+  <text class="h" x="1324" y="676" font-size="24" style="fill:#E5624B">A human takes over</text>
+  <text class="s" x="1324" y="702" font-size="15">a rule broke, or no advice</text>
+
+  <!-- Policy and scoreboard -->
+  <rect class="panel" x="400" y="620" width="420" height="100" rx="4"/>
+  <text class="h" x="428" y="660" font-size="24">Policy table</text>
+  <text class="s" x="428" y="690" font-size="16">urgency, escalation and the correct action, in code</text>
+  <rect class="panel" x="60" y="620" width="260" height="100" rx="4"/>
+  <text class="h" x="84" y="660" font-size="24">Scoreboard</text>
+  <text class="s" x="84" y="690" font-size="16">graded against the hidden cause</text>
+
+  <!-- Wires -->
+  <path class="agentwire" d="M320 225 H394" marker-end="url(#ahv)"/>
+  <path class="wire" d="M320 455 H394" marker-end="url(#ah)"/>
+  <path class="agentwire" d="M820 266 H894" marker-end="url(#ahv)"/>
+  <path class="wire" d="M1220 225 H1294" marker-end="url(#ah)"/>
+  <path class="wire dash" d="M1160 384 V340 H1250 V250 H1294" marker-end="url(#ah)"/>
+  <text class="s" x="1262" y="306" font-size="14">serves once</text><text class="s" x="1262" y="324" font-size="14">passed</text>
+  <path class="agentwire" d="M820 400 H860 V600 H894" marker-end="url(#ahv)"/>
+  <text class="code" x="850" y="530" font-size="14" transform="rotate(-90 850 530)">advice</text>
+  <path class="wire" d="M820 680 H894" marker-end="url(#ah)"/>
+  <path class="wire" d="M1220 580 H1294" marker-end="url(#ah)"/>
+  <path class="wire" d="M1220 680 H1294" marker-end="url(#ah)"/>
+  <path class="wire" d="M400 700 H326" marker-end="url(#ah)"/>
+
+  <!-- Legend -->
+  <line x1="60" y1="790" x2="110" y2="790" stroke="#F2B33D" stroke-width="3"/>
+  <text class="s" x="124" y="796" font-size="17">the agent's path</text>
+  <rect x="300" y="776" width="50" height="28" rx="4" fill="url(#hatch)"/>
+  <text class="s" x="364" y="796" font-size="17">a zone another vehicle closed</text>
+  <rect x="640" y="778" width="22" height="22" rx="4" fill="none" stroke="#7CC5A1" stroke-width="3"/>
+  <rect x="672" y="778" width="22" height="22" rx="4" fill="none" stroke="#E5624B" stroke-width="3"/>
+  <text class="s" x="708" y="796" font-size="17">the validator's verdict</text>
+</svg>

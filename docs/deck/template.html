@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Response copilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --asphalt: #2E3438;
+    --kerb: #3B4246;
+    --lane: #E8EBE4;
+    --verge: #9AA39E;
+    --hivis: #F2B33D;
+    --stop: #E5624B;
+    --go: #7CC5A1;
+  }
+  @page { size: 1920px 1080px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--asphalt); color: var(--lane); }
+  body {
+    font-family: Barlow, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .slide {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    padding: 120px 140px 110px;
+    overflow: hidden;
+    background: var(--asphalt);
+    break-after: page;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+  }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+  @media screen { .slide { margin: 0 auto 40px; } }
+
+  h1, h2, .big {
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 1.02;
+  }
+  h1 { font-size: 150px; }
+  h2 { font-size: 92px; max-width: 1500px; }
+  p, li { font-size: 36px; line-height: 1.38; }
+  .lede { font-size: 44px; line-height: 1.32; color: var(--lane); max-width: 1320px; margin-top: 36px; }
+  .quiet { color: var(--verge); }
+  .small { font-size: 24px; line-height: 1.4; color: var(--verge); }
+  .code { color: var(--hivis); font-weight: 500; }
+  .folio { position: absolute; right: 140px; bottom: 56px; font-size: 22px; color: var(--verge); }
+  .src { position: absolute; left: 140px; bottom: 56px; font-size: 22px; color: var(--verge); max-width: 1400px; }
+
+  .hatch {
+    background: repeating-linear-gradient(-45deg, var(--hivis) 0 22px, var(--asphalt) 22px 44px);
+    border-radius: 4px;
+  }
+
+  /* Title */
+  .title { justify-content: space-between; }
+  .title .band { height: 64px; width: 100%; }
+  .title h1 { margin-top: 70px; }
+  .title .lede { max-width: 1150px; }
+  .title .meta { font-size: 30px; color: var(--verge); }
+
+  /* Problem */
+  .problem-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 110px; margin-top: 64px; align-items: start; }
+  .figure .big { font-size: 220px; color: var(--hivis); line-height: 0.9; }
+  .figure p { margin-top: 18px; max-width: 620px; }
+
+  /* What we built: a sequence */
+  .steps { display: grid; grid-template-columns: 1fr 70px 1fr 70px 1fr; align-items: stretch; margin-top: 80px; }
+  .step { background: var(--kerb); border-radius: 4px; padding: 44px 44px 48px; }
+  .step.agent { outline: 3px solid var(--hivis); outline-offset: -3px; }
+  .step .big { font-size: 54px; }
+  .step p { font-size: 30px; margin-top: 18px; color: var(--lane); }
+  .step .tag { font-size: 26px; margin-top: 26px; color: var(--verge); }
+  .arrow { align-self: center; justify-self: center; width: 40px; height: 4px; background: var(--hivis); position: relative; }
+  .arrow::after { content: ""; position: absolute; right: -4px; top: -9px; border-left: 16px solid var(--hivis); border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+
+  /* Architecture */
+  .arch { padding: 70px 120px 90px; }
+  .arch svg { width: 100%; height: auto; display: block; }
+
+  /* Safety */
+  .safety-grid { display: grid; grid-template-columns: 820px 1fr; gap: 100px; margin-top: 60px; align-items: start; }
+  .rules { list-style: none; }
+  .rules li { padding: 20px 0 20px 0; border-bottom: 2px solid var(--kerb); font-size: 34px; }
+  .rules li:last-child { border-bottom: 0; }
+  .verdict { margin-top: 40px; font-size: 34px; }
+  .verdict strong { color: var(--stop); font-weight: 600; }
+
+  /* Demo */
+  .demo-wrap { margin-top: 48px; display: grid; grid-template-columns: 1fr 520px; gap: 70px; flex: 1; min-height: 0; }
+  .demo-shot { background: var(--kerb); border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .demo-shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .demo-shot .empty { font-size: 30px; color: var(--verge); padding: 60px; }
+  .demo-steps { list-style: none; counter-reset: s; }
+  .demo-steps li { counter-increment: s; font-size: 31px; padding: 18px 0 18px 62px; position: relative; }
+  .demo-steps li::before { content: counter(s); position: absolute; left: 0; top: 18px; font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 40px; color: var(--hivis); line-height: 1.1; }
+
+  /* Mubit */
+  .mubit-grid { display: grid; grid-template-columns: 760px 1fr; gap: 110px; margin-top: 60px; }
+  .lane-diagram .task { background: var(--kerb); border-radius: 4px; padding: 30px 36px; margin-bottom: 22px; }
+  .lane-diagram .task .big { font-size: 46px; }
+  .lane-diagram .task p { font-size: 28px; color: var(--verge); margin-top: 6px; }
+  .rollout { display: flex; align-items: center; gap: 12px; margin-top: 44px; }
+  .rollout .stage { border: 2px solid var(--verge); border-radius: 4px; padding: 14px 18px; font-size: 25px; white-space: nowrap; }
+  .rollout .stage.live { border-color: var(--hivis); color: var(--hivis); }
+  .rollout .to { width: 26px; height: 3px; background: var(--hivis); flex: none; }
+  .rollout-note { font-size: 24px; color: var(--verge); margin-top: 18px; }
+  .uses dt { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 44px; color: var(--lane); margin-top: 28px; }
+  .uses dt:first-child { margin-top: 0; }
+  .uses dd { font-size: 30px; line-height: 1.38; color: var(--verge); margin-top: 6px; max-width: 760px; }
+
+  /* Results */
+  table.score { border-collapse: collapse; margin-top: 56px; width: 1400px; }
+  table.score th, table.score td { text-align: left; padding: 20px 28px 20px 0; font-size: 34px; }
+  table.score thead th { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 40px; color: var(--verge); border-bottom: 3px solid var(--kerb); }
+  table.score thead th.small-model { color: var(--hivis); }
+  table.score tbody td { border-bottom: 2px solid var(--kerb); }
+  table.score tbody tr:last-child td { border-bottom: 0; }
+  table.score td.num { font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 46px; }
+  table.score td.blocked { color: var(--stop); }
+
+  /* Why Mubit */
+  .levers { display: grid; grid-template-columns: 1fr 1fr; gap: 34px 90px; margin-top: 60px; }
+  .lever .big { font-size: 48px; }
+  .lever p { font-size: 30px; color: var(--verge); margin-top: 8px; max-width: 760px; }
+  .honest { margin-top: 56px; padding-top: 30px; border-top: 3px solid var(--kerb); font-size: 30px; max-width: 1500px; }
+
+  /* Next */
+  .next-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 110px; margin-top: 60px; }
+  .next-grid h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 52px; margin-bottom: 18px; }
+  .next-grid ul { list-style: none; }
+  .next-grid li { font-size: 32px; padding: 14px 0 14px 34px; position: relative; }
+  .next-grid li::before { content: ""; position: absolute; left: 0; top: 33px; width: 14px; height: 4px; background: var(--hivis); }
+  .repo { margin-top: auto; font-family: "Barlow Condensed", sans-serif; font-weight: 600; font-size: 56px; color: var(--hivis); }
+</style>
+</head>
+<body>
+
+<section class="slide title">
+  <div class="band hatch" aria-hidden="true"></div>
+  <div>
+    <h1>Fleet Response copilot</h1>
+    <p class="lede">An AI first responder for autonomous vehicles that get stuck. It advises; code decides; Mubit turns every step into the fleet's own model.</p>
+  </div>
+  <p class="meta">Mubit Night Shift, London, October 2026<br>github.com/aswin-giridhar/mubit-fleet</p>
+</section>
+
+<section class="slide">
+  <h2>Robotaxis get stuck. Today a person gets them moving.</h2>
+  <div class="problem-grid">
+    <div>
+      <p>A double-parked van, roadworks, a police officer waving traffic through, a frightened rider. The car asks a remote agent for context. The agent suggests a lane or a path, and the car stays in control.</p>
+      <p style="margin-top:28px">Waymo calls this fleet response, and describes it as advice, not control.</p>
+    </div>
+    <div class="figure">
+      <div class="big">~70</div>
+      <p>remote agents on duty, reported for a fleet of about 3,000 vehicles. Every request an AI resolves correctly is one a person doesn't have to.</p>
+    </div>
+  </div>
+  <p class="src">Sources: waymo.com/blog/2024/05/fleet-response, waymo.com/blog/shorts/advice-not-control-the-role-of-remote-assistance, TechCrunch Mobility (22 Feb 2026)</p>
+  <span class="folio">2</span>
+</section>
+
+<section class="slide">
+  <h2>A copilot that investigates, advises, and never drives</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="big">Triage</div>
+      <p>Reads messy evidence (sensors, camera caption, rider and staff messages) and names one of ten incident types.</p>
+      <p class="tag">Mubit task 1</p>
+    </div>
+    <div class="arrow" aria-hidden="true"></div>
+    <div class="step agent">
+      <div class="big">Respond</div>
+      <p>Starts with only an alert, calls five tools to investigate, then submits one piece of advice.</p>
+      <p class="tag">Mubit task 2, tool use</p>
+    </div>
+    <div class="arrow" aria-hidden="true"></div>
+    <div class="step">
+      <div class="big">Validate</div>
+      <p>Code checks the advice against hard safety rules. Anything that breaks one goes to a human.</p>
+      <p class="tag">Plain code, no model</p>
+    </div>
+  </div>
+  <span class="folio">3</span>
+</section>
+
+<section class="slide arch">
+  {{ARCH_SVG}}
+  <span class="folio">4</span>
+</section>
+
+<section class="slide">
+  <h2>The model proposes. Code decides.</h2>
+  <div class="safety-grid">
+    <svg viewBox="0 0 820 560" width="820" height="560" role="img" aria-label="A proposed route into a zone another vehicle closed, rejected by the validator">
+      <defs>
+        <pattern id="h2" patternUnits="userSpaceOnUse" width="22" height="22"><rect width="22" height="22" fill="#2E3438"/><path d="M0 0 H11 L0 11 Z M22 0 V11 L11 22 H0 Z" fill="#F2B33D"/></pattern>
+      </defs>
+      <g fill="#3B4246">
+        <rect x="0" y="0" width="190" height="130" rx="4"/><rect x="210" y="0" width="190" height="130" rx="4"/><rect x="420" y="0" width="190" height="130" rx="4"/><rect x="630" y="0" width="190" height="130" rx="4"/>
+        <rect x="0" y="150" width="190" height="130" rx="4"/><rect x="210" y="150" width="190" height="130" rx="4"/><rect x="630" y="150" width="190" height="130" rx="4"/>
+        <rect x="0" y="300" width="190" height="130" rx="4"/><rect x="210" y="300" width="190" height="130" rx="4"/><rect x="420" y="300" width="190" height="130" rx="4"/><rect x="630" y="300" width="190" height="130" rx="4"/>
+      </g>
+      <rect x="420" y="150" width="190" height="130" rx="4" fill="url(#h2)"/>
+      <path d="M95 215 H515" stroke="#E5624B" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 22" fill="none"/>
+      <path d="M95 215 V365 H725 V215" stroke="#7CC5A1" stroke-width="10" stroke-linecap="round" fill="none"/>
+      <rect x="62" y="190" width="66" height="50" rx="4" fill="#E8EBE4"/>
+      <circle cx="515" cy="215" r="30" fill="#E5624B"/>
+      <path d="M502 202 L528 228 M528 202 L502 228" stroke="#2E3438" stroke-width="7" stroke-linecap="round"/>
+      <text x="0" y="490" font-family="Barlow, Arial, sans-serif" font-size="26" fill="#9AA39E">Fastest route: through a zone another vehicle closed minutes ago.</text>
+      <text x="0" y="528" font-family="Barlow, Arial, sans-serif" font-size="26" fill="#9AA39E">Rejected. The safe route stays open.</text>
+    </svg>
+    <div>
+      <ul class="rules">
+        <li>No route into a zone another vehicle closed</li>
+        <li>The route must exist</li>
+        <li>A wait lasts between 1 and 600 seconds</li>
+        <li>No motion while perception is degraded</li>
+        <li>Broken rule or no advice: a human takes over</li>
+      </ul>
+      <p class="verdict">On 40 incidents the validator blocked <strong>1 unsafe suggestion</strong>, from the smaller model. Swapping models cannot make the fleet unsafe.</p>
+    </div>
+  </div>
+  <span class="folio">5</span>
+</section>
+
+<section class="slide">
+  <h2>Live: a vehicle blocked by an empty car</h2>
+  <div class="demo-wrap">
+    <div class="demo-shot">
+      <img src="demo.png" alt="The demo view: a city grid with the agent's tool calls and the validator's verdict" onerror="this.remove(); document.getElementById('demo-empty').hidden = false;">
+      <p class="empty" id="demo-empty" hidden>The demo view runs live from <span class="code">fleet/</span>: a city grid, the agent's tool calls, and the verdict.</p>
+    </div>
+    <ol class="demo-steps">
+      <li>An alert arrives: vehicle, zone, nothing else</li>
+      <li>The agent checks the vehicle, camera and messages</li>
+      <li>It reads what other vehicles reported nearby</li>
+      <li>It advises a reroute</li>
+      <li>Code accepts it, or rejects it and calls a human</li>
+    </ol>
+  </div>
+  <span class="folio">6</span>
+</section>
+
+<section class="slide">
+  <h2>Every call goes through Mubit</h2>
+  <div class="mubit-grid">
+    <div class="lane-diagram">
+      <div class="task">
+        <div class="big">First-line triage</div>
+        <p>80 calls, one frozen prompt</p>
+      </div>
+      <div class="task">
+        <div class="big">Remote fleet-response</div>
+        <p>151 tool-use calls, one frozen prompt and tool list</p>
+      </div>
+      <div class="rollout" aria-label="Adapter rollout path">
+        <span class="stage">25 kept examples</span><span class="to"></span>
+        <span class="stage">silent test</span><span class="to"></span>
+        <span class="stage">10% rollout</span><span class="to"></span>
+        <span class="stage live">live</span>
+      </div>
+      <p class="rollout-note">Automatic once a version answers within 5 points of the provider model. No code change.</p>
+    </div>
+    <dl class="uses">
+      <dt>Sessions</dt>
+      <dd>Each incident is one session, so it never sits on both sides of the train and test split.</dd>
+      <dt>Request IDs</dt>
+      <dd>Every wrong answer is logged with its Mubit request ID, ready to rate Bad.</dd>
+      <dt>Rider privacy</dt>
+      <dd>Rider help requests are recorded as metadata only. Mubit never stores or trains on a rider's words.</dd>
+      <dt>Served by</dt>
+      <dd>Every call logs the model that answered, so the switch to the fleet's own model shows up on its own.</dd>
+    </dl>
+  </div>
+  <span class="folio">7</span>
+</section>
+
+<section class="slide">
+  <h2>The big model is right more often. The small one is nearly twice as fast.</h2>
+  <table class="score">
+    <thead>
+      <tr><th></th><th>Claude Sonnet 4.5</th><th class="small-model">Claude Haiku 4.5</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Correct advice</td><td class="num">90%</td><td class="num">72%</td></tr>
+      <tr><td>Unsafe advice blocked by code</td><td class="num">0</td><td class="num blocked">1</td></tr>
+      <tr><td>Median time to advice</td><td class="num">9.5 s</td><td class="num">5.3 s</td></tr>
+      <tr><td>Estimated cost per 1,000 incidents</td><td class="num">$17.11</td><td class="num">$5.48</td></tr>
+    </tbody>
+  </table>
+  <p class="src">40 generated incidents (seed 61), identical for both models, run through Mubit. Costs are estimates from list prices.</p>
+  <span class="folio">8</span>
+</section>
+
+<section class="slide">
+  <h2>That gap is what a distilled model closes</h2>
+  <div class="levers">
+    <div class="lever"><div class="big">Volume</div><p>Help requests grow with the fleet, every vehicle, every day.</p></div>
+    <div class="lever"><div class="big">Agent loops</div><p>About 3,600 input tokens per incident on Sonnet: a tool loop, not a single call.</p></div>
+    <div class="lever"><div class="big">Waiting costs</div><p>A stuck vehicle blocks traffic and a rider the whole time the model thinks.</p></div>
+    <div class="lever"><div class="big">Ownership</div><p>Incident data is safety-sensitive. Each fleet should own the model it trains.</p></div>
+  </div>
+  <p class="honest">Honest note: triage is easy for every model we tried (both 97%), so it may stay prompt-only. The responder is where a dedicated model earns its place.</p>
+  <span class="folio">9</span>
+</section>
+
+<section class="slide">
+  <h2>What's next</h2>
+  <div class="next-grid">
+    <div>
+      <h3>For the copilot</h3>
+      <ul>
+        <li>Clear Mubit's review queue: 231 calls sent, first adapters pending</li>
+        <li>Keep traffic flowing so a passing version reaches live</li>
+        <li>Rate the logged wrong answers, so outcomes feed back</li>
+      </ul>
+    </div>
+    <div>
+      <h3>For Mubit</h3>
+      <ul>
+        <li>A served-by signal on each response, so apps see the switch</li>
+        <li>Learnings as fleet memory: what one vehicle learns, every vehicle knows</li>
+        <li>A ratings API, so validators can rate replies directly</li>
+      </ul>
+    </div>
+  </div>
+  <p class="repo">github.com/aswin-giridhar/mubit-fleet</p>
+  <span class="folio">10</span>
+</section>
+
+<script>
+  // ?slide=N shows a single slide (used for screenshots).
+  const n = new URLSearchParams(location.search).get("slide");
+  if (n) document.querySelectorAll(".slide").forEach((s, i) => { if (i + 1 !== Number(n)) s.style.display = "none"; });
+</script>
+</body>
+</html>

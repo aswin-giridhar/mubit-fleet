@@ -17,6 +17,7 @@ SMALL = "claude-haiku-4-5"      # stand-in for the small tier until adapters can
 client = Anthropic(
     base_url=os.environ.get("MUBIT_BASE_URL", "https://api.mubit.ai/anthropic"),
     api_key=os.environ["MUBIT_API_KEY"],
+    max_retries=4,  # Mubit returns 503/429 with retry-after during short gateway blips; the SDK honours it
 )
 
 

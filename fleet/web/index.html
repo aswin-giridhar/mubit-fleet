@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Response</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --asphalt: #2E3438;
+    --kerb: #3B4246;
+    --kerb-up: #444C51;
+    --lane: #E8EBE4;
+    --verge: #9AA39E;
+    --hivis: #F2B33D;
+    --stop: #E5624B;
+    --go: #7CC5A1;
+    --r: 4px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--asphalt); color: var(--lane); }
+  body { font: 400 15px/1.45 "Barlow", system-ui, sans-serif; font-variant-numeric: tabular-nums; min-height: 100dvh;
+         display: grid; grid-template-rows: auto 1fr auto; }
+  h1, .display { font-family: "Barlow Condensed", "Barlow", sans-serif; font-weight: 600; letter-spacing: .01em; }
+  button, select { font: inherit; color: var(--lane); }
+  :focus-visible { outline: 2px solid var(--hivis); outline-offset: 2px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 24px;
+           border-bottom: 1px solid var(--kerb); }
+  header h1 { margin: 0 12px 0 0; font-size: 26px; line-height: 1; }
+  header h1 span { color: var(--verge); font-weight: 500; }
+  .control { display: flex; align-items: center; gap: 8px; color: var(--verge); }
+  select { background: var(--kerb); border: 1px solid var(--kerb-up); border-radius: var(--r); padding: 7px 10px; max-width: 290px; }
+  label.check { display: flex; align-items: center; gap: 8px; color: var(--lane); cursor: pointer; }
+  label.check input { accent-color: var(--hivis); width: 16px; height: 16px; }
+  .run { background: var(--hivis); color: #23282B; border: 0; border-radius: var(--r); padding: 8px 18px; font-weight: 600; cursor: pointer; }
+  .run:active { transform: translateY(1px); }
+  .run:disabled { opacity: .55; cursor: progress; }
+  .ghost { background: transparent; border: 1px solid var(--kerb-up); border-radius: var(--r); padding: 7px 14px; cursor: pointer; }
+  .spacer { flex: 1; }
+
+  main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); min-height: 0; }
+  .city { padding: 20px 24px; display: grid; grid-template-rows: 1fr auto; gap: 16px; min-height: 0; }
+  svg.grid { width: 100%; height: 100%; max-height: 62vh; }
+  svg.grid[hidden], .city3d[hidden] { display: none; }
+  .city3d { width: 100%; height: 62vh; min-height: 360px; border-radius: var(--r); overflow: hidden; background: #262B2E; }
+  .log { border-left: 1px solid var(--kerb); overflow-y: auto; padding: 18px 22px 28px; max-height: calc(100dvh - 150px); }
+
+  .verdict { border-radius: var(--r); padding: 14px 18px; background: var(--kerb); min-height: 64px; display: grid; align-content: center; }
+  .verdict .display { font-size: 24px; line-height: 1.1; }
+  .verdict p { margin: 4px 0 0; color: var(--verge); max-width: 80ch; }
+  .verdict.ok { box-shadow: inset 4px 0 0 var(--go); }
+  .verdict.ok .display { color: var(--go); }
+  .verdict.blocked { box-shadow: inset 4px 0 0 var(--stop); }
+  .verdict.blocked .display { color: var(--stop); }
+  .verdict.pending .display { color: var(--hivis); }
+
+  .entry { padding: 10px 0 12px; border-top: 1px solid var(--kerb); }
+  .entry:first-child { border-top: 0; }
+  .entry .what { font-weight: 600; }
+  .entry .what.agent { color: var(--hivis); }
+  .entry .what.fault { color: var(--stop); }
+  .entry .detail { color: var(--verge); margin-top: 3px; }
+  .entry .detail q { color: var(--lane); quotes: "\201C" "\201D"; }
+  .entry .meta { color: var(--verge); font-size: 13px; }
+  .empty { color: var(--verge); max-width: 34ch; padding-top: 8px; }
+
+  footer { display: grid; grid-template-columns: repeat(5, auto) 1fr; gap: 8px 32px; padding: 12px 24px;
+           border-top: 1px solid var(--kerb); color: var(--verge); font-size: 13px; }
+  footer b { display: block; color: var(--lane); font: 600 20px/1.1 "Barlow Condensed", sans-serif; }
+  footer .ids { justify-self: end; text-align: right; overflow-wrap: anywhere; max-width: 46ch; }
+
+  .zone-label { font: 600 15px "Barlow Condensed", sans-serif; fill: var(--verge); }
+  .route { fill: none; stroke: var(--verge); stroke-width: 3; stroke-dasharray: 6 7; stroke-linecap: round; opacity: .8; }
+  .route.chosen { stroke: var(--hivis); stroke-width: 6; stroke-dasharray: none; opacity: 1; }
+  .route.rejected { stroke: var(--stop); stroke-width: 6; stroke-dasharray: none; opacity: 1; }
+  .route-label { font: 600 16px "Barlow Condensed", sans-serif; fill: var(--lane); }
+  @media (prefers-reduced-motion: no-preference) {
+    .route.rejected { stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 1.1s ease-out forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+  }
+
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; }
+    .log { border-left: 0; border-top: 1px solid var(--kerb); max-height: none; }
+    footer { grid-template-columns: repeat(2, 1fr); }
+    footer .ids { justify-self: start; text-align: left; grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fleet Response <span>copilot</span></h1>
+  <div class="control"><label for="incident">Incident</label><select id="incident"></select></div>
+  <div class="control"><label for="model">Model</label>
+    <select id="model"><option value="sonnet">claude-sonnet-4-5</option><option value="haiku">claude-haiku-4-5</option></select></div>
+  <label class="check"><input type="checkbox" id="fault"> Inject a fault</label>
+  <button class="run" id="run">Run incident</button>
+  <button class="ghost" id="view" aria-pressed="true">Show 2D map</button>
+  <span class="spacer"></span>
+  <select id="replay" aria-label="Recorded runs"><option value="">No recorded runs yet</option></select>
+  <button class="ghost" id="play">Replay</button>
+</header>
+
+<main>
+  <section class="city" aria-label="City grid">
+    <div class="city3d" id="city3d" aria-label="3D view of the city, the stuck vehicle, routes and closed zones" role="img"></div>
+    <svg class="grid" id="grid" hidden viewBox="0 0 780 470" preserveAspectRatio="xMidYMin meet" role="img" aria-label="City zones, the stuck vehicle, routes and closed zones">
+      <defs>
+        <pattern id="works" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="18" height="18" fill="#2E3438"/><rect width="9" height="18" fill="#F2B33D"/>
+        </pattern>
+      </defs>
+      <g id="tiles"></g><g id="routes"></g><g id="marks"></g>
+    </svg>
+    <div class="verdict" id="verdict" aria-live="polite">
+      <div class="display">Waiting for a help request</div>
+      <p>Pick an incident and run it. The agent's advice is checked by code before the vehicle may act on it.</p>
+    </div>
+  </section>
+  <section class="log" id="log" aria-label="What the agent did" aria-live="polite">
+    <p class="empty">Each step the agent takes appears here: the tools it calls, what it learns, and the advice it gives.</p>
+  </section>
+</main>
+
+<footer>
+  <div>Model<b id="s-model">-</b></div>
+  <div>Model calls<b id="s-calls">0</b></div>
+  <div>Tokens in / out<b id="s-tokens">0 / 0</b></div>
+  <div>Time<b id="s-time">0.0 s</b></div>
+  <div>Served by<b id="s-served">-</b></div>
+  <div class="ids" id="s-ids">Mubit request IDs appear here.</div>
+</footer>
+
+<script>
+const ROWS = "ABCD", COLS = 6, W = 112, H = 92, GAP = 16, X0 = 24, Y0 = 24;
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+const center = z => { const r = ROWS.indexOf(z[1]), c = +z[2] - 1;
+  return [X0 + c * (W + GAP) + W / 2, Y0 + r * (H + GAP) + H / 2]; };
+const short = z => z.slice(1);
+const TOOL_NAMES = { get_vehicle_state: "Checked the vehicle", get_camera_caption: "Read the camera",
+  get_messages: "Read the messages", get_recent_events: "Checked other vehicles' reports",
+  get_route_options: "Asked for route options", submit_advice: "Gave advice" };
+const ACTION_TEXT = { wait: "Wait", reroute: "Reroute", mark_zone_closed: "Close this zone for the fleet",
+  proceed_with_caution: "Proceed with caution", request_human: "Ask a human operator",
+  dispatch_event_response: "Send the event response team" };
+
+let state = {};
+function reset() {
+  state = { calls: 0, tin: 0, tout: 0, ids: [], served: "-", routes: [], closed: [], zone: null };
+  for (const g of ["tiles", "routes", "marks"]) $(g).innerHTML = "";
+  for (const r of ROWS) for (let c = 1; c <= COLS; c++) {
+    const z = "Z" + r + c, x = X0 + (c - 1) * (W + GAP), y = Y0 + ROWS.indexOf(r) * (H + GAP);
+    svgEl("rect", { x, y, width: W, height: H, rx: 4, fill: "#3B4246", id: "tile-" + z }, $("tiles"));
+    svgEl("text", { x: x + 10, y: y + 22, class: "zone-label" }, $("tiles")).textContent = short(z);
+  }
+  window.view3d && view3d.reset();
+  $("log").innerHTML = ""; setVerdict("pending", "Working on it", "The agent is investigating.");
+  $("s-time").textContent = "0.0 s"; stats();
+}
+function stats() {
+  $("s-calls").textContent = state.calls;
+  $("s-tokens").textContent = state.tin.toLocaleString() + " / " + state.tout.toLocaleString();
+  $("s-served").textContent = state.served;
+  $("s-ids").textContent = state.ids.length ? state.ids.join("  ") : "Mubit request IDs appear here.";
+}
+function log(what, detail, cls = "", meta = "") {
+  const e = document.createElement("div"); e.className = "entry";
+  e.innerHTML = `<div class="what ${cls}"></div>${detail ? '<div class="detail"></div>' : ""}${meta ? '<div class="meta"></div>' : ""}`;
+  e.querySelector(".what").textContent = what;
+  if (detail) e.querySelector(".detail").innerHTML = detail;
+  if (meta) e.querySelector(".meta").textContent = meta;
+  $("log").appendChild(e); e.scrollIntoView({ block: "end", behavior: "smooth" });
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function setVerdict(kind, title, body) {
+  $("verdict").className = "verdict " + kind;
+  $("verdict").innerHTML = `<div class="display"></div><p></p>`;
+  $("verdict").querySelector(".display").textContent = title;
+  $("verdict").querySelector("p").textContent = body;
+}
+function drawVehicle(zone) {
+  window.view3d && view3d.vehicle(zone, state.vehicle);
+  const [cx, cy] = center(zone);
+  svgEl("rect", { x: cx - 26, y: cy - 4, width: 52, height: 26, rx: 4, fill: "#F2B33D" }, $("marks"));
+  svgEl("text", { x: cx, y: cy + 14, "text-anchor": "middle", style: "font:600 14px 'Barlow Condensed';fill:#23282B" },
+        $("marks")).textContent = state.vehicle;
+}
+function hatch(zone) { const t = $("tile-" + zone); if (t) t.setAttribute("fill", "url(#works)");
+  window.view3d && view3d.closed(zone); }
+function drawRoutes(routes) {
+  window.view3d && view3d.routes(routes, state.zone);
+  $("routes").innerHTML = "";
+  for (const r of routes) {
+    const pts = [state.zone, ...r.zones].map(center);
+    const d = "M" + pts.map(p => p.join(",")).join(" L");
+    svgEl("path", { d, class: "route", id: "route-" + r.route_id }, $("routes"));
+    const [lx, ly] = pts[pts.length - 1];
+    svgEl("text", { x: lx + 8, y: ly - 8, class: "route-label" }, $("routes")).textContent = r.route_id;
+  }
+  $("marks").innerHTML = ""; drawVehicle(state.zone);
+}
+
+function summarise(name, result) {
+  if (name === "get_vehicle_state") {
+    const seen = result.perception.map(p => p.type.replace(/_/g, " ") + (p.size_cm ? ` (${p.size_cm} cm)` : "")).join(", ");
+    return `${esc(result.planner_status)}. Blocked for ${result.blocked_seconds} s. Sees: ${esc(seen)}.`;
+  }
+  if (name === "get_camera_caption") return `<q>${esc(result.caption)}</q>`;
+  if (name === "get_messages") return result.messages.length
+      ? result.messages.map(m => `${esc(m.from.replace("_", " "))}: <q>${esc(m.text)}</q>`).join("<br>") : "No messages.";
+  if (name === "get_recent_events") return result.events.map(e =>
+      `${esc(short(e.zone))}, ${e.minutes_ago} min ago: ${esc(e.report)}`).join("<br>");
+  if (name === "get_route_options") return result.routes.map(r =>
+      `${r.route_id} via ${r.zones.map(short).join(", ")}, about ${Math.round(r.eta_s / 60)} min`).join("<br>");
+  return "";
+}
+
+function handle(e) {
+  if (e.t === "incident") {
+    state.zone = e.zone; state.vehicle = e.vehicle_id; state.closed = e.closed_zones; state.routes = e.routes;
+    $("s-model").textContent = e.model; drawVehicle(e.zone);
+    log(`Help request from ${e.vehicle_id} in ${short(e.zone)}`, "The vehicle has stopped and asked for remote assistance.",
+        "", e.replay ? "Replaying a recorded run" : "");
+  } else if (e.t === "thinking") {
+    setVerdict("pending", "Working on it", `Model call ${e.step} is in progress.`);
+  } else if (e.t === "reply") {
+    $("s-time").textContent = (e.at || 0).toFixed(1) + " s";
+    state.calls++; state.tin += e.tokens_in; state.tout += e.tokens_out; state.ids.push(e.request_id);
+    state.served = e.served_model.startsWith("claude") ? "Your provider" : e.served_model; stats();
+    log(`Model call ${e.step} answered in ${e.latency_s.toFixed(1)} s`, "", "", `${e.request_id}  ${e.served_model}`);
+  } else if (e.t === "tool" && e.name !== "submit_advice") {
+    log(TOOL_NAMES[e.name] || e.name, "", "agent");
+  } else if (e.t === "result") {
+    const last = $("log").lastElementChild;
+    const d = document.createElement("div"); d.className = "detail"; d.innerHTML = summarise(e.name, e.result);
+    last.appendChild(d);
+    if (e.name === "get_recent_events") state.closed.forEach(hatch);
+    if (e.name === "get_route_options") drawRoutes(e.result.routes);
+  } else if (e.t === "tool" && e.name === "submit_advice") {
+    const a = e.input, extra = a.action === "reroute" ? ` via ${a.route_id}` : a.action === "wait" ? ` for ${a.wait_seconds} s` : "";
+    log(`Advice: ${ACTION_TEXT[a.action] || a.action}${extra}`, esc(a.reason || ""), "agent");
+  } else if (e.t === "fault") {
+    log("Injected fault: advice replaced with the fastest route", "This is a deliberate test of the safety check, not the model's answer.", "fault");
+  } else if (e.t === "verdict") {
+    if (e.at) $("s-time").textContent = e.at.toFixed(1) + " s";
+    if (e.advice && e.advice.action === "reroute") {
+      if (!$("route-" + e.advice.route_id)) drawRoutes(state.routes);
+      const p = $("route-" + e.advice.route_id);
+      if (p) { p.setAttribute("class", "route " + (e.violations.length ? "rejected" : "chosen")); p.parentNode.appendChild(p); }
+      window.view3d && view3d.routeState(e.advice.route_id, e.violations.length ? "rejected" : "chosen");
+    }
+    if (e.error) {
+      setVerdict("blocked", "The model could not be reached. Escalated to a human.",
+        "No advice was given, so the vehicle stays stopped and a person takes over. " + e.error.slice(0, 160));
+    } else if (e.violations.length) {
+      setVerdict("blocked", "Rejected by code. Escalated to a human.",
+        e.violations.join("; ").replace(/Z([A-D][1-6])/g, "$1") + ".");
+    } else {
+      setVerdict("ok", `Accepted: ${ACTION_TEXT[e.final_action] || e.final_action}`,
+        e.correct ? "Matches the fleet policy for this incident." :
+                    `Safe, but the fleet policy says: ${ACTION_TEXT[e.expected] || e.expected}.`);
+    }
+    if (e.error) log("The model call failed", esc(e.error), "fault");  // shown in the log as well as the banner
+  } else if (e.t === "saved") {
+    loadRecordings(e.name);
+  } else if (e.t === "error") {
+    setVerdict("blocked", "The run stopped", e.message);
+  }
+}
+
+let source = null;
+function stream(url) {
+  if (source) source.close();
+  reset(); $("run").disabled = true;
+  source = new EventSource(url);
+  source.onmessage = m => { const e = JSON.parse(m.data); handle(e); if (e.t === "saved" || e.t === "error") done(); };
+  source.onerror = () => done();
+}
+function done() { if (source) source.close(); source = null; $("run").disabled = false;
+  if (/Working/.test($("verdict").textContent)) setVerdict("pending", "Run finished", "Replay ended or the connection closed."); }
+async function loadRecordings(select) {
+  const names = await (await fetch("/api/recordings")).json();
+  $("replay").innerHTML = names.length ? names.map(n => `<option>${esc(n)}</option>`).join("") : '<option value="">No recorded runs yet</option>';
+  if (select) $("replay").value = select;
+}
+async function init() {
+  const incidents = await (await fetch("/api/incidents")).json();
+  $("incident").innerHTML = incidents.map(i => `<option value="${i.index}">${esc(i.incident_id)}  ${esc(i.vehicle_id)} in ${esc(short(i.zone))}${i.closure_nearby ? ", closure reported nearby" : ""}</option>`).join("");
+  loadRecordings(); reset();
+  setVerdict("", "Waiting for a help request", "Pick an incident and run it. The agent's advice is checked by code before the vehicle may act on it.");
+  $("log").innerHTML = '<p class="empty">Each step the agent takes appears here: the tools it calls, what it learns, and the advice it gives.</p>';
+}
+$("run").onclick = () => stream(`/api/run?i=${$("incident").value}&model=${$("model").value}&fault=${$("fault").checked ? 1 : 0}`);
+$("view").onclick = () => {
+  const show3d = $("city3d").hidden;
+  $("city3d").hidden = !show3d; $("grid").hidden = show3d;
+  $("view").textContent = show3d ? "Show 2D map" : "Show 3D city"; $("view").setAttribute("aria-pressed", String(show3d));
+  window.view3d && view3d.resize();
+};
+$("play").onclick = () => $("replay").value && stream(`/api/replay?name=${encodeURIComponent($("replay").value)}`);
+init();
+// If the 3D view can't start (no WebGL, CDN unreachable), fall back to the 2D map rather than an empty box.
+setTimeout(() => { if (!window.view3d && !$("city3d").hidden) $("view").click(); }, 5000);
+</script>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const C = { asphalt: 0x2E3438, kerb: 0x3B4246, lane: 0xE8EBE4, verge: 0x9AA39E, hivis: 0xF2B33D, stop: 0xE5624B, go: 0x7CC5A1 };
+const ROWS = "ABCD", COLS = 6, PITCH = 2.6, BLOCK = 2.0;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const host = document.getElementById("city3d");
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+host.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x262B2E);
+scene.fog = new THREE.Fog(0x262B2E, 18, 34);
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+camera.position.set(0, 15.5, 8.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.maxPolarAngle = 1.25; controls.minDistance = 6; controls.maxDistance = 24;
+
+scene.add(new THREE.HemisphereLight(0xdfe6e0, 0x1d2124, 1.1));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+sun.position.set(-6, 12, 7); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10 });
+scene.add(sun);
+
+const pos = z => { const r = ROWS.indexOf(z[1]), c = +z[2] - 1;
+  return new THREE.Vector3((c - (COLS - 1) / 2) * PITCH, 0, (r - (ROWS.length - 1) / 2) * PITCH); };
+const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.0, ...extra });
+
+// Ground and lane markings along the streets between blocks.
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(C.asphalt));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const dash = new THREE.BoxGeometry(0.32, 0.01, 0.06), laneMat = mat(C.lane, { transparent: true, opacity: 0.45 });
+for (let r = 0; r <= ROWS.length; r++) for (let x = -8; x <= 8; x += 0.7) {
+  const m = new THREE.Mesh(dash, laneMat); m.position.set(x, 0.01, (r - ROWS.length / 2) * PITCH); scene.add(m); }
+
+// A label drawn on a canvas, so it uses the page's Barlow Condensed.
+function label(text, color = "#9AA39E", px = 64) {
+  const cv = document.createElement("canvas"), ctx = cv.getContext("2d");
+  ctx.font = `600 ${px}px "Barlow Condensed", sans-serif`;
+  cv.width = Math.ceil(ctx.measureText(text).width) + 16; cv.height = px + 16;
+  ctx.font = `600 ${px}px "Barlow Condensed", sans-serif`; ctx.fillStyle = color; ctx.textBaseline = "top";
+  ctx.fillText(text, 8, 8);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+  s.scale.set(cv.width / cv.height * 0.42, 0.42, 1); s.renderOrder = 10; return s;
+}
+function stripes() {
+  const cv = document.createElement("canvas"); cv.width = cv.height = 128; const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#2E3438"; ctx.fillRect(0, 0, 128, 128); ctx.fillStyle = "#F2B33D";
+  for (let i = -128; i < 256; i += 32) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 16, 0);
+    ctx.lineTo(i + 16 - 128, 128); ctx.lineTo(i - 128, 128); ctx.fill(); }
+  const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); return t;
+}
+const worksMat = mat(0xffffff, { map: stripes() });
+
+// City blocks: a kerb slab with four low buildings at the corners, so a street crosses each block's centre.
+const zoneLabels = [];
+const slabs = {}, slabGeo = new THREE.BoxGeometry(BLOCK, 0.12, BLOCK);
+let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (const r of ROWS) for (let c = 1; c <= COLS; c++) {
+  const z = "Z" + r + c, p = pos(z);
+  const slab = new THREE.Mesh(slabGeo, mat(C.kerb)); slab.position.set(p.x, 0.06, p.z); slab.receiveShadow = true;
+  scene.add(slab); slabs[z] = slab;
+  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+    const h = 0.22 + rand() * 0.6, b = new THREE.Mesh(new THREE.BoxGeometry(0.5, h, 0.5),
+      mat(new THREE.Color(0x454d52).offsetHSL(0, 0, (rand() - 0.5) * 0.06)));
+    b.position.set(p.x + dx * 0.66, 0.12 + h / 2, p.z + dz * 0.66); b.castShadow = b.receiveShadow = true; scene.add(b);
+  }
+  zoneLabels.push([r + c, p]);
+}
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
+  for (const [text, p] of zoneLabels) { const l = label(text); l.position.set(p.x - 0.62, 0.5, p.z + 0.98); scene.add(l); }
+});
+
+const dynamic = new THREE.Group(); scene.add(dynamic);
+let vehicle = null, routeMeshes = {}, drawing = null;
+const target = new THREE.Vector3(), lookGoal = new THREE.Vector3();
+
+function vehicleMesh(text) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.22, 0.34), mat(C.hivis, { roughness: 0.5 }));
+  body.position.y = 0.25; body.castShadow = true;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.3), mat(0x23282B, { roughness: 0.3 }));
+  cabin.position.set(-0.04, 0.42, 0);
+  const sensor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.08, 16), mat(C.lane));
+  sensor.position.set(-0.04, 0.54, 0);
+  const tag = label(text, "#F2B33D", 56); tag.position.set(0, 0.95, 0);
+  g.add(body, cabin, sensor, tag); return g;
+}
+function cone(x, z) {
+  const m = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 12), mat(C.hivis)); m.position.set(x, 0.26, z);
+  m.castShadow = true; return m;
+}
+function tube(points, color, radius, opacity = 1) {
+  const path = new THREE.CurvePath();
+  for (let i = 0; i < points.length - 1; i++) path.add(new THREE.LineCurve3(points[i], points[i + 1]));
+  const geo = new THREE.TubeGeometry(path, 64 * (points.length - 1), radius, 10, false);
+  return new THREE.Mesh(geo, mat(color, { emissive: color, emissiveIntensity: 0.35, transparent: opacity < 1, opacity }));
+}
+
+window.view3d = {
+  reset() {
+    dynamic.clear(); routeMeshes = {}; vehicle = null; drawing = null;
+    for (const s of Object.values(slabs)) s.material = mat(C.kerb);
+  },
+  vehicle(zone, text) {
+    if (vehicle) dynamic.remove(vehicle);
+    vehicle = vehicleMesh(text || "AV"); const p = pos(zone); vehicle.position.set(p.x, 0, p.z); dynamic.add(vehicle);
+    lookGoal.copy(p);
+  },
+  closed(zone) {
+    const s = slabs[zone]; if (!s) return; s.material = worksMat;
+    const p = pos(zone);
+    for (const [dx, dz] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0, 0]]) dynamic.add(cone(p.x + dx, p.z + dz));
+    const tag = label("Closed", "#E5624B", 56); tag.position.set(p.x, 0.75, p.z); dynamic.add(tag);
+  },
+  routes(routes, origin) {
+    for (const m of Object.values(routeMeshes)) dynamic.remove(m.mesh, m.tag);
+    routeMeshes = {};
+    routes.forEach((r, i) => {
+      const pts = [origin, ...r.zones].map(z => pos(z).setY(0.16 + i * 0.05));
+      const mesh = tube(pts, C.verge, 0.045, 0.75);
+      const tag = label(r.route_id, "#E8EBE4", 52); tag.position.copy(pts[pts.length - 1]).setY(0.75);
+      dynamic.add(mesh, tag); routeMeshes[r.route_id] = { mesh, tag, pts };
+    });
+  },
+  routeState(id, kind) {
+    const r = routeMeshes[id]; if (!r) return;
+    dynamic.remove(r.mesh);
+    const color = kind === "rejected" ? C.stop : C.hivis;
+    r.mesh = tube(r.pts, color, 0.09); dynamic.add(r.mesh);
+    if (kind === "rejected" && !reduce) {   // the one orchestrated moment: the unsafe route draws in, then stops red
+      const total = r.mesh.geometry.index.count; r.mesh.geometry.setDrawRange(0, 0);
+      drawing = { geo: r.mesh.geometry, total, t0: performance.now() };
+    }
+  },
+  resize,
+};
+
+function resize() {
+  const w = host.clientWidth || 800, h = host.clientHeight || 500;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(host); resize();
+
+renderer.setAnimationLoop(now => {
+  target.lerp(lookGoal, reduce ? 1 : 0.04); controls.target.copy(target); controls.update();
+  if (drawing) {
+    const k = Math.min(1, (now - drawing.t0) / 1100);
+    drawing.geo.setDrawRange(0, Math.floor(drawing.total * k / 3) * 3);
+    if (k >= 1) drawing = null;
+  }
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

@@ -21,3 +21,6 @@ Thumbs.db
 .vscode/
 .idea/
 nul
+
+# Local browser-automation output
+.playwright-mcp/
