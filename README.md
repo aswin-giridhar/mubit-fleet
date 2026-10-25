@@ -92,6 +92,11 @@ What this shows:
   This is the behaviour Mubit promises: the cheap model takes over the task it can do, and the hard agentic task stays on
   the frontier model. A control run of Mubit's own documented example task passed at 100% in the same project.
   (Review was delayed for a few hours by a Mubit outage, which Mubit support confirmed.)
+- **Mubit's reviewer and our grader agree.** Incident INC-400008 (roadworks closing the road): Sonnet advised `reroute`. Our
+  grader marked it wrong because the injected cause calls for `mark_zone_closed`. Independently, Mubit's reviewer rated the same
+  reply **Bad** with the reason "Policy requires mark_zone_closed rather than reroute when road is closed by works or barriers"
+  (request `01a1705d-597b-70f0-8415-b88ae05c18ce`). The model's own reply said the policy required closing the zone, then
+  rerouted anyway, which is why the rules are enforced in code rather than trusted to the model.
 
 Costs use list prices (Haiku 4.5 $1/$5 per million tokens; Sonnet 4.5 assumed $3/$15) and are estimates.
 
