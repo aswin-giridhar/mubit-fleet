@@ -47,7 +47,11 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
-        self.wfile.write(body)
+        # Write in chunks and flush: a single large write was cut short (979 KB of a 998 KB model arrived).
+        view = memoryview(body)
+        for i in range(0, len(view), 64 * 1024):
+            self.wfile.write(view[i:i + 64 * 1024])
+        self.wfile.flush()
 
     def _json(self, obj) -> None:
         self._send(200, json.dumps(obj).encode(), "application/json")
@@ -69,11 +73,16 @@ class Handler(BaseHTTPRequestHandler):
         q = {k: v[0] for k, v in parse_qs(url.query).items()}
         if url.path == "/":
             return self._send(200, (ROOT / "web" / "index.html").read_bytes(), "text/html; charset=utf-8")
+        if url.path.startswith("/assets/"):
+            asset = (ROOT / "web" / "assets" / Path(url.path).name)
+            if asset.is_file():
+                return self._send(200, asset.read_bytes(), "model/gltf-binary")
+            return self._send(404, b"not found", "text/plain")
         if url.path == "/api/incidents":
             return self._json(incident_list())
         if url.path == "/api/recordings":
             RECORDINGS.mkdir(parents=True, exist_ok=True)
-            return self._json(sorted(p.stem for p in RECORDINGS.glob("*.json")))
+            return self._json(sorted(p.stem for p in RECORDINGS.glob("*.json") if p != MUBIT_STATUS))
         if url.path == "/api/run":
             return self._stream(self._live(int(q.get("i", 0)), MODELS.get(q.get("model", "sonnet"), TEACHER),
                                            q.get("fault") == "1"))
@@ -135,6 +144,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
+    # On Windows, SO_REUSEADDR lets a second server bind the same port and silently answer with stale code.
+    # Refuse instead, so a leftover server is an error, not a mystery.
+    ThreadingHTTPServer.allow_reuse_address = False
     server = ThreadingHTTPServer(("127.0.0.1", 8765), Handler)
     print("Demo view on http://localhost:8765  (Ctrl+C to stop)")
     server.serve_forever()

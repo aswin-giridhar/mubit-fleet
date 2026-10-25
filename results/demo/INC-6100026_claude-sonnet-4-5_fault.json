@@ -51,28 +51,44 @@
   "closed_zones": [
    "ZB5"
   ],
+  "mubit": {
+   "as_of": "00:56",
+   "triage": "Reviewing examples, 0 of 25 kept",
+   "responder": "Reviewing examples, 0 of 25 kept",
+   "note": "Training queue delayed by a Mubit outage"
+  },
   "at": 0.0
+ },
+ {
+  "t": "triage",
+  "category": "debris_large",
+  "latency_s": 1.396,
+  "input_tokens": 604,
+  "output_tokens": 16,
+  "served_model": "claude-sonnet-4-5-20250929",
+  "request_id": "mreq_01a1707a752e7dc1be894a458c8f3aae",
+  "at": 1.4
  },
  {
   "t": "thinking",
   "step": 1,
-  "at": 0.0
+  "at": 1.4
  },
  {
   "t": "reply",
   "step": 1,
-  "latency_s": 2.41,
-  "request_id": "mreq_01a17065620a7070b01cb533878b52f7",
+  "latency_s": 2.05,
+  "request_id": "mreq_01a1707a7a1575a195c93e3b02588cf0",
   "served_model": "claude-sonnet-4-5-20250929",
   "tokens_in": 1215,
-  "tokens_out": 124,
-  "at": 2.41
+  "tokens_out": 126,
+  "at": 3.45
  },
  {
   "t": "tool",
   "name": "get_vehicle_state",
   "input": {},
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "result",
@@ -93,13 +109,13 @@
     }
    ]
   },
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "tool",
   "name": "get_camera_caption",
   "input": {},
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "result",
@@ -107,13 +123,13 @@
   "result": {
    "caption": "a ladder lying across the lane"
   },
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "tool",
   "name": "get_messages",
   "input": {},
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "result",
@@ -130,13 +146,13 @@
     }
    ]
   },
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "tool",
   "name": "get_recent_events",
   "input": {},
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "result",
@@ -157,28 +173,28 @@
     }
    ]
   },
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "thinking",
   "step": 2,
-  "at": 2.41
+  "at": 3.46
  },
  {
   "t": "reply",
   "step": 2,
-  "latency_s": 1.62,
-  "request_id": "mreq_01a170656b2d7f529411d8e82e8714e5",
+  "latency_s": 1.76,
+  "request_id": "mreq_01a1707a821a7431a6417ee7478dcff6",
   "served_model": "claude-sonnet-4-5-20250929",
-  "tokens_in": 1670,
-  "tokens_out": 53,
-  "at": 4.03
+  "tokens_in": 1672,
+  "tokens_out": 55,
+  "at": 5.22
  },
  {
   "t": "tool",
   "name": "get_route_options",
   "input": {},
-  "at": 4.03
+  "at": 5.22
  },
  {
   "t": "result",
@@ -214,41 +230,41 @@
     }
    ]
   },
-  "at": 4.03
+  "at": 5.22
  },
  {
   "t": "thinking",
   "step": 3,
-  "at": 4.03
+  "at": 5.22
  },
  {
   "t": "reply",
   "step": 3,
-  "latency_s": 8.33,
-  "request_id": "mreq_01a17065718679d29b9bd7bb6b7dc781",
+  "latency_s": 7.6,
+  "request_id": "mreq_01a1707a892f71b380eb6f6ee9929985",
   "served_model": "claude-sonnet-4-5-20250929",
-  "tokens_in": 1845,
-  "tokens_out": 363,
-  "at": 12.36
+  "tokens_in": 1849,
+  "tokens_out": 346,
+  "at": 12.82
  },
  {
   "t": "tool",
   "name": "submit_advice",
   "input": {
    "action": "reroute",
-   "reason": "Large ladder blocking the lane with no one to remove it; rerouting via R1 to avoid blocked zone ZB5.",
+   "reason": "Large ladder blocking the lane with nobody present to remove it, rerouting via R1 to avoid both the obstacle and the blocked zone ZB5.",
    "route_id": "R1"
   },
-  "at": 12.36
+  "at": 12.82
  },
  {
   "t": "fault",
   "original": {
    "action": "reroute",
-   "reason": "Large ladder blocking the lane with no one to remove it; rerouting via R1 to avoid blocked zone ZB5.",
+   "reason": "Large ladder blocking the lane with nobody present to remove it, rerouting via R1 to avoid both the obstacle and the blocked zone ZB5.",
    "route_id": "R1"
   },
-  "at": 12.36
+  "at": 12.82
  },
  {
   "t": "verdict",
@@ -266,6 +282,6 @@
   "category": "debris_large",
   "injected": true,
   "error": null,
-  "at": 12.36
+  "at": 12.82
  }
 ]

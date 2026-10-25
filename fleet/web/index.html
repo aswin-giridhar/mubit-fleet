@@ -21,7 +21,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--asphalt); color: var(--lane); }
-  body { font: 400 17px/1.45 "Barlow", system-ui, sans-serif; font-variant-numeric: tabular-nums; min-height: 100dvh;
+  body { font: 400 17px/1.45 "Barlow", system-ui, sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; overflow: hidden;
          display: grid; grid-template-rows: auto 1fr auto; }
   h1, .display { font-family: "Barlow Condensed", "Barlow", sans-serif; font-weight: 600; letter-spacing: .01em; }
   button, select { font: inherit; color: var(--lane); }
@@ -41,12 +41,12 @@
   .ghost { background: transparent; border: 1px solid var(--kerb-up); border-radius: var(--r); padding: 7px 14px; cursor: pointer; }
   .spacer { flex: 1; }
 
-  main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); min-height: 0; }
-  .city { padding: 20px 24px; display: grid; grid-template-rows: 1fr auto; gap: 16px; min-height: 0; }
-  svg.grid { width: 100%; height: calc(100dvh - 420px); min-height: 320px; }
+  main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); min-height: 0; overflow: hidden; }
+  .city { padding: 20px 24px; display: grid; grid-template-rows: auto auto; align-content: start; gap: 16px; min-height: 0; }
+  svg.grid { width: 100%; height: calc(100dvh - 375px); min-height: 320px; }
   svg.grid[hidden], .city3d[hidden] { display: none; }
-  .city3d { width: 100%; height: calc(100dvh - 420px); min-height: 360px; border-radius: var(--r); overflow: hidden; background: #262B2E; }
-  .log { border-left: 1px solid var(--kerb); overflow-y: auto; padding: 18px 22px 28px; max-height: calc(100dvh - 150px); }
+  .city3d { width: 100%; height: calc(100dvh - 375px); min-height: 360px; border-radius: var(--r); overflow: hidden; background: #262B2E; }
+  .log { border-left: 1px solid var(--kerb); overflow-y: auto; padding: 18px 22px 28px; min-height: 0; }
 
   .verdict { border-radius: var(--r); padding: 14px 18px; background: var(--kerb); min-height: 64px; display: grid; align-content: center; }
   .verdict .display { font-size: 30px; line-height: 1.1; }
@@ -85,7 +85,8 @@
   }
 
   @media (max-width: 900px) {
-    main { grid-template-columns: 1fr; }
+    body { height: auto; overflow: auto; }
+    main { grid-template-columns: 1fr; overflow: visible; }
     .log { border-left: 0; border-top: 1px solid var(--kerb); max-height: none; }
     footer { grid-template-columns: repeat(2, 1fr); }
     footer .mubit { justify-self: start; grid-column: 1 / -1; }
@@ -334,6 +335,7 @@ setTimeout(() => { if (!window.view3d && !$("city3d").hidden) $("view").click();
 <script type="module">
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 const C = { asphalt: 0x2E3438, kerb: 0x3B4246, lane: 0xE8EBE4, verge: 0x9AA39E, hivis: 0xF2B33D, stop: 0xE5624B, go: 0x7CC5A1 };
 const ROWS = "ABCD", COLS = 6, PITCH = 2.6, BLOCK = 2.0;
@@ -353,8 +355,8 @@ camera.position.set(0, 12, 8);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.maxPolarAngle = 1.25; controls.minDistance = 6; controls.maxDistance = 24;
 
-scene.add(new THREE.HemisphereLight(0xdfe6e0, 0x1d2124, 1.1));
-const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+scene.add(new THREE.HemisphereLight(0xeef2ec, 0x2a2f33, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.1);
 sun.position.set(-6, 12, 7); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
 Object.assign(sun.shadow.camera, { left: -10, right: 10, top: 10, bottom: -10 });
 scene.add(sun);
@@ -364,7 +366,7 @@ const pos = z => { const r = ROWS.indexOf(z[1]), c = +z[2] - 1;
 const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0.0, ...extra });
 
 // Ground and lane markings along the streets between blocks.
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(C.asphalt));
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 30), mat(0x24292c));
 ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 const dash = new THREE.BoxGeometry(0.32, 0.01, 0.06), laneMat = mat(C.lane, { transparent: true, opacity: 0.45 });
 for (let r = 0; r <= ROWS.length; r++) for (let x = -8; x <= 8; x += 0.7) {
@@ -401,7 +403,7 @@ for (const r of ROWS) for (let c = 1; c <= COLS; c++) {
   scene.add(slab); slabs[z] = slab;
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
     const h = 0.22 + rand() * 0.6, b = new THREE.Mesh(new THREE.BoxGeometry(0.5, h, 0.5),
-      mat(new THREE.Color(0x454d52).offsetHSL(0, 0, (rand() - 0.5) * 0.06)));
+      mat(new THREE.Color(0x66707a).offsetHSL(0, 0, (rand() - 0.5) * 0.08)));
     b.position.set(p.x + dx * 0.66, 0.12 + h / 2, p.z + dz * 0.66); b.castShadow = b.receiveShadow = true; scene.add(b);
   }
   zoneLabels.push([r + c, p]);
@@ -414,7 +416,25 @@ const dynamic = new THREE.Group(); scene.add(dynamic);
 let vehicle = null, routeMeshes = {}, drawing = null;
 const target = new THREE.Vector3(), lookGoal = new THREE.Vector3();
 
+// A generated robotaxi model (Runware, image-to-3D). The procedural car below is the fallback.
+let robotaxi = null;
+new GLTFLoader().load("/assets/robotaxi.glb", gltf => {
+  const m = gltf.scene;
+  m.traverse(o => { if (o.isMesh) { o.castShadow = true;
+    o.material.emissiveIntensity = 0; o.material.flatShading = true; o.material.needsUpdate = true; } });
+  const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
+  const k = 1.15 / size.x; m.scale.setScalar(k);
+  m.position.y = -box.min.y * k;            // wheels on the ground
+  robotaxi = new THREE.Group(); robotaxi.add(m);
+  if (vehicle) { const z = vehicle.userData.zone, t = vehicle.userData.text; window.view3d.vehicle(z, t); }
+}, undefined, () => {});
+
 function vehicleMesh(text) {
+  if (robotaxi) {
+    const g = new THREE.Group(); g.add(robotaxi.clone());
+    const tag = label(text, "#23282B", 76, "#F2B33D"); tag.position.set(0, 1.25, 0); g.add(tag);
+    return g;
+  }
   const g = new THREE.Group(), paint = mat(C.lane, { roughness: 0.45 }), glass = mat(0x1d2326, { roughness: 0.2 });
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.2, 0.4), paint); body.position.y = 0.22;
   const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.17, 0.36), glass); cabin.position.set(-0.03, 0.4, 0);
@@ -447,6 +467,11 @@ window.view3d = {
   vehicle(zone, text) {
     if (vehicle) dynamic.remove(vehicle);
     vehicle = vehicleMesh(text || "AV"); const p = pos(zone); vehicle.position.set(p.x, 0, p.z); dynamic.add(vehicle);
+    // A hi-vis ring on the ground so the vehicle is found at a glance, even at video resolution.
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.62, 0.8, 48),
+      new THREE.MeshBasicMaterial({ color: C.hivis, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.14; vehicle.add(ring);
+    vehicle.userData = { zone, text };
     lookGoal.copy(p);
   },
   closed(zone) {
