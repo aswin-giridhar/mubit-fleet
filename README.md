@@ -75,6 +75,10 @@ What this shows:
   | Remote fleet-response (multi-turn tool use) | **0%** on 19 test cases | 52.9% | Below target, so Sonnet keeps answering |
 
   Quality is the share of test cases the adapter answered like the provider model (Mubit console, Sun 25 Oct 06:24 GMT).
+
+  ![Mubit console, Adapters page: triage adapter 93.8% (target 85%), responder 0% (target 52.9%), control 100%](docs/mubit-adapters.jpg)
+  ![Mubit console, Tasks page: First-line triage 852 calls, Remote fleet-response 254 calls](docs/mubit-tasks.jpg)
+
   This is the behaviour Mubit promises: the cheap model takes over the task it can do, and the hard agentic task stays on
   the frontier model. A control run of Mubit's own documented example task passed at 100% in the same project.
   (Review was delayed for a few hours by a Mubit outage, which Mubit support confirmed.)
