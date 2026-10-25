@@ -4,7 +4,7 @@
 
 Built at Mubit Night Shift (London, 24-25 Oct 2026).
 
-![The demo view: a stuck vehicle, the agent's tool calls, and the code's verdict](docs/deck/demo.png)
+![A robotaxi stopped by a ladder in its lane, with the street ahead closed by roadworks](docs/cover.jpg)
 
 ## The problem
 
@@ -84,6 +84,8 @@ reroute incidents, the fastest route passes through a zone another vehicle close
 
 The 2-minute video follows one real recorded incident, `INC-6100026`, through Mubit:
 
+![The demo view: a stuck vehicle, the agent's tool calls, and the code's verdict](docs/deck/demo.png)
+
 1. **The problem.** Robotaxis get stuck; Waymo was reported to run about 70 remote agents for about 3,000 vehicles.
 2. **A help request.** Vehicle AV-735 in zone B4 has stopped: a ladder is lying across the lane.
 3. **Triage (Mubit task 1).** One call classifies it as large debris.
@@ -149,7 +151,7 @@ results/           curated results and recorded demo runs (raw logs in runs/ are
 docs/              architecture, deck, design system
 ```
 
-The robotaxi model was generated for this project with Runware (an image generated with FLUX, then converted to 3D with Meshy-6).
+The robotaxi model was generated for this project with Runware (an image generated with FLUX, then converted to 3D with Meshy-6). The cover image was also generated with Runware (FLUX).
 
 ## Limits, stated plainly
 
