@@ -117,7 +117,7 @@ Every step on screen names the Mubit task that served it, with its Mubit request
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scriptsctivate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env               # add your Mubit key (mbt_...)
 
