@@ -116,8 +116,10 @@ Every step on screen names the Mubit task that served it, with its Mubit request
 ## Run it
 
 ```bash
-python -m venv .venv && .venv/Scripts/pip install -r requirements.txt   # or: uv venv && uv pip install -r requirements.txt
-cp .env.example .env        # add your Mubit key (mbt_...)
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scriptsctivate
+pip install -r requirements.txt
+cp .env.example .env               # add your Mubit key (mbt_...)
 
 python -m fleet.run_triage --count 10 --pilot              # triage; --pilot = never kept for training
 python -m fleet.run_responder --count 10 --pilot           # the agent, validated
@@ -129,7 +131,7 @@ Drop `--pilot` to send real traffic that Mubit can train on.
 ### The demo view
 
 ```bash
-python -m fleet.demo          # then open http://localhost:8765
+python -m fleet.demo          # then open http://localhost:8765 (the server takes a few seconds to start)
 ```
 
 - Pick an incident and a model, then **Run incident**: triage and the responder run live through Mubit, and each step streams in.
