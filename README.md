@@ -66,9 +66,18 @@ What this shows:
 - The large model is more accurate but takes about twice as long and costs about three times as much. A stuck vehicle is
   waiting the whole time. The gap is what a distilled adapter is meant to close: large-model quality at small-model speed and cost.
 - Even the large model is wrong 10% of the time, which is why the validator and the human escalation exist.
-- Training traffic sent through Mubit: 140 triage calls and 100 responder incidents (about 250 tool-use calls), answered by
-  Sonnet. Both tasks were waiting in Mubit's review queue ("Reviewing examples", 0 of 25 kept) during the event, because of
-  a Mubit outage that Mubit support confirmed. The demo's footer shows that status, with the time it was read from the console.
+- **Mubit trained the fleet's first model.** From our traffic (140 triage calls, 100 responder incidents of about 250
+  tool-use calls, plus later rollout traffic), Mubit trained a Qwen3-4B-Instruct-2507 adapter per task:
+
+  | Task | Adapter v1 quality | Target | Result |
+  |---|---|---|---|
+  | First-line triage | **93.8%** | 85% | **Passed its tests**, moving through Mubit's silent test and rollout |
+  | Remote fleet-response (multi-turn tool use) | **0%** on 19 test cases | 52.9% | Below target, so Sonnet keeps answering |
+
+  Quality is the share of test cases the adapter answered like the provider model (Mubit console, Sun 25 Oct 06:24 GMT).
+  This is the behaviour Mubit promises: the cheap model takes over the task it can do, and the hard agentic task stays on
+  the frontier model. A control run of Mubit's own documented example task passed at 100% in the same project.
+  (Review was delayed for a few hours by a Mubit outage, which Mubit support confirmed.)
 
 Costs use list prices (Haiku 4.5 $1/$5 per million tokens; Sonnet 4.5 assumed $3/$15) and are estimates.
 
@@ -156,7 +165,8 @@ The robotaxi model was generated for this project with Runware (an image generat
 ## Limits, stated plainly
 
 - The incidents are generated, not real fleet data. The claim is about the shape of the workload and the safety architecture.
-- No adapter had passed training at the time of writing. Mubit's review queue was backed up during the event.
+- The triage adapter passed its tests but was not yet serving live calls at submission: Mubit's rollout needs graded
+  silent-test pairs and a partial rollout first. The responder adapter (multi-turn tool use) is below target.
 - The cost figures are estimates from list prices, not invoices.
 - The rejected route in the demo comes from the deliberate "Test the safety check" control. In the 40-incident scoreboard, the
   validator caught one unsafe answer from Haiku on its own (an out-of-range wait time).

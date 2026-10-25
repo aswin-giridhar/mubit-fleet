@@ -1,1 +1,1 @@
-{"as_of": "00:56", "triage": "Reviewing examples, 0 of 25 kept", "responder": "Reviewing examples, 0 of 25 kept", "note": "Training queue delayed by a Mubit outage"}
+{"as_of": "06:24 GMT", "triage": "v1 passed its tests, 93.8% vs 85% target, not live yet", "responder": "triage adapter v1 passed (93.8%); responder v1 below target (0%)", "note": "Mubit rolls an adapter out only after its silent test"}
