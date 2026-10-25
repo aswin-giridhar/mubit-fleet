@@ -316,15 +316,16 @@ async function init() {
 }
 $("run").onclick = () => stream(`/api/run?i=${$("incident").value}&model=${$("model").value}&fault=${$("fault").checked ? 1 : 0}`);
 $("view").onclick = () => {
-  const show3d = $("city3d").hidden;
-  $("city3d").hidden = !show3d; $("grid").hidden = show3d;
+  // toggleAttribute, not .hidden: the map is an SVG element, and SVG elements have no `hidden` property.
+  const show3d = $("city3d").hasAttribute("hidden");
+  $("city3d").toggleAttribute("hidden", !show3d); $("grid").toggleAttribute("hidden", show3d);
   $("view").textContent = show3d ? "Show 2D map" : "Show 3D city"; $("view").setAttribute("aria-pressed", String(show3d));
   window.view3d && view3d.resize();
 };
 $("play").onclick = () => $("replay").value && stream(`/api/replay?name=${encodeURIComponent($("replay").value)}`);
 init();
 // If the 3D view can't start (no WebGL, CDN unreachable), fall back to the 2D map rather than an empty box.
-setTimeout(() => { if (!window.view3d && !$("city3d").hidden) $("view").click(); }, 5000);
+setTimeout(() => { if (!window.view3d && !$("city3d").hasAttribute("hidden")) $("view").click(); }, 5000);
 </script>
 
 <script type="importmap">
