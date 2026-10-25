@@ -119,7 +119,7 @@ flowchart LR
 | Rollout | Approval is automatic once a version passes: a silent test answers copies of 10% of calls (up to 100 a day), then a partial rollout answers 10% of calls for real (at least 100 calls), then the version goes live. The provider re-answers 2% of live calls as spot checks. No code change is needed; every call logs the model that served it. |
 | Request IDs | Every reply carries `x-middleware-request-id`. Runs log them, and the scoreboard lists the IDs of wrong answers so they can be found in Requests and rated Bad. |
 | Data controls | A rider asking for help writes about their own health or safety, so those calls send `x-middleware-record: metadata`: Mubit keeps the call's metadata but not its text, and never trains on it. Measurement runs use the same header, so comparisons never become training data. |
-| Traffic so far | 80 triage calls and 151 responder calls, answered by Sonnet 4.5. |
+| Traffic and results | Training traffic: 152 triage calls and 254 responder calls, answered by Sonnet 4.5; 700 more triage calls followed to drive the rollout (852 in total). Mubit console, Sun 25 Oct 06:43 GMT: the triage adapter v1 (Qwen3-4B) matched Sonnet on 93.8% of held-out tests against an 85% target and passed, not yet live; the responder adapter v1 scored 0% against 52.9%, so Sonnet keeps answering it. |
 
 ## Data and ground truth
 
@@ -155,5 +155,5 @@ suggestion from Haiku and none from Sonnet.
 - **A reply that is not the JSON asked for** raises `BadAnswer` in triage instead of being treated as a category.
 - **No `submit_advice` within 8 steps** escalates to a human.
 - **Mubit's review queue** can lag: task assignment took several minutes during the event, and both tasks sat in "Reviewing
-  examples" while the queue was backed up. The system works on the provider model throughout; the adapter is an improvement
-  path, not a dependency.
+  examples" for a few hours during a Mubit outage (confirmed by Mubit support). Review then resumed and the triage adapter
+  trained and passed. The system works on the provider model throughout; the adapter is an improvement path, not a dependency.

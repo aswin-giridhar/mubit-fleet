@@ -66,8 +66,8 @@ What this shows:
 - The large model is more accurate but takes about twice as long and costs about three times as much. A stuck vehicle is
   waiting the whole time. The gap is what a distilled adapter is meant to close: large-model quality at small-model speed and cost.
 - Even the large model is wrong 10% of the time, which is why the validator and the human escalation exist.
-- **Mubit trained the fleet's first model.** From our traffic (140 triage calls, 100 responder incidents of about 250
-  tool-use calls, plus later rollout traffic), Mubit trained a Qwen3-4B-Instruct-2507 adapter per task:
+- **Mubit trained the fleet's first model.** From our traffic (152 triage calls and 254 responder tool-use calls, plus 700
+  triage calls of rollout traffic), Mubit trained a Qwen3-4B-Instruct-2507 adapter per task:
 
   | Task | Adapter v1 quality | Target | Result |
   |---|---|---|---|
