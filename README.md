@@ -4,6 +4,8 @@
 
 Built at Mubit Night Shift (London, 24-25 Oct 2026).
 
+![The demo view: a stuck vehicle, the agent's tool calls, and the code's verdict](docs/deck/demo.png)
+
 ## The problem
 
 Robotaxis and delivery robots get stuck several times a day: a double-parked van, roadworks, a police officer waving traffic
@@ -64,8 +66,9 @@ What this shows:
 - The large model is more accurate but takes about twice as long and costs about three times as much. A stuck vehicle is
   waiting the whole time. The gap is what a distilled adapter is meant to close: large-model quality at small-model speed and cost.
 - Even the large model is wrong 10% of the time, which is why the validator and the human escalation exist.
-- Training traffic sent through Mubit so far: 80 triage calls and 60 responder incidents (151 calls) answered by Sonnet.
-  Adapter status is tracked in the Mubit console.
+- Training traffic sent through Mubit: 140 triage calls and 100 responder incidents (about 250 tool-use calls), answered by
+  Sonnet. Both tasks were waiting in Mubit's review queue ("Reviewing examples", 0 of 25 kept) during the event, because of
+  a Mubit outage that Mubit support confirmed. The demo's footer shows that status, with the time it was read from the console.
 
 Costs use list prices (Haiku 4.5 $1/$5 per million tokens; Sonnet 4.5 assumed $3/$15) and are estimates.
 
@@ -79,11 +82,21 @@ reroute incidents, the fastest route passes through a zone another vehicle close
 
 ## What the demo shows
 
-1. A vehicle blocked by an empty car, plus a rider's message.
-2. The agent's tool calls: it checks the vehicle, the camera, the messages and the fleet's recent reports.
-3. The safety moment: advice that would route through a zone another vehicle just closed is rejected by code and escalated.
-4. The Mubit console: two tasks, their training status and the rollout path for the fleet's own models.
-5. The scoreboard: correctness, unsafe advice blocked, latency and cost, large model against small.
+The 2-minute video follows one real recorded incident, `INC-6100026`, through Mubit:
+
+1. **The problem.** Robotaxis get stuck; Waymo was reported to run about 70 remote agents for about 3,000 vehicles.
+2. **A help request.** Vehicle AV-735 in zone B4 has stopped: a ladder is lying across the lane.
+3. **Triage (Mubit task 1).** One call classifies it as large debris.
+4. **The agent investigates (Mubit task 2).** It checks the vehicle, reads the camera and the rider's message ("big thing in the
+   roa"), and checks other vehicles' reports: one reported a collision blocking both lanes in B5, four minutes earlier. B5 is on
+   the fastest route.
+5. **The advice.** The agent reroutes via R1, around B5. Code checks the advice and accepts it.
+6. **The safety check, tested on purpose.** With "Test the safety check" on, the agent's advice is replaced with the fastest
+   route, R2, straight through closed B5. Code rejects it and escalates to a human. The screen says what the model itself advised,
+   so the test is never mistaken for a model error.
+7. **How it uses Mubit**, and **the scoreboard**: large model against small, on correctness, speed and cost.
+
+Every step on screen names the Mubit task that served it, with its Mubit request ID.
 
 ## Run it
 
@@ -98,6 +111,25 @@ python -m fleet.scoreboard --count 40 --seed 61            # large vs small mode
 
 Drop `--pilot` to send real traffic that Mubit can train on.
 
+### The demo view
+
+```bash
+python -m fleet.demo          # then open http://localhost:8765
+```
+
+- Pick an incident and a model, then **Run incident**: triage and the responder run live through Mubit, and each step streams in.
+- **Test the safety check** swaps the agent's advice for the fastest route, to show the validator rejecting it.
+- **Show 2D map / Show 3D city** switches views. If WebGL or the Three.js CDN is unavailable, the page falls back to 2D by itself.
+- Every live run is saved to `results/demo/` and can be **replayed** at its original pace without network access.
+  `results/demo/mubit_status.json` holds the adapter status shown in the footer, copied from the Mubit console with its time
+  (Mubit has no read API for task status).
+
+## Docs
+
+- [`docs/architecture.md`](docs/architecture.md): components, the per-incident sequence, the Mubit layer, safety guarantees and their limits.
+- [`docs/pitch-deck.pdf`](docs/pitch-deck.pdf): the 10-slide deck.
+- [`docs/design-system.md`](docs/design-system.md): the colours, type and shapes shared by the demo, the deck and the diagram.
+
 ## Layout
 
 ```
@@ -110,11 +142,19 @@ fleet/
   run_triage.py    run/grade/log triage
   run_responder.py run/grade/log the agent
   scoreboard.py    same incidents on several models → results/
-results/           curated results (raw logs in runs/ are not committed)
+  demo.py          demo server: streams each step (server-sent events), records and replays runs
+  web/index.html   the demo view: Three.js city with a 2D fallback, the agent's log, the Mubit strip
+  web/assets/      robotaxi.glb
+results/           curated results and recorded demo runs (raw logs in runs/ are not committed)
+docs/              architecture, deck, design system
 ```
+
+The robotaxi model was generated for this project with Runware (an image generated with FLUX, then converted to 3D with Meshy-6).
 
 ## Limits, stated plainly
 
 - The incidents are generated, not real fleet data. The claim is about the shape of the workload and the safety architecture.
 - No adapter had passed training at the time of writing. Mubit's review queue was backed up during the event.
 - The cost figures are estimates from list prices, not invoices.
+- The rejected route in the demo comes from the deliberate "Test the safety check" control. In the 40-incident scoreboard, the
+  validator caught one unsafe answer from Haiku on its own (an out-of-range wait time).
