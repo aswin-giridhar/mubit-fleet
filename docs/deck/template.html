@@ -259,11 +259,11 @@
     <div class="lane-diagram">
       <div class="task">
         <div class="big">First-line triage</div>
-        <p>80 calls, one frozen prompt</p>
+        <p>152 calls, one frozen prompt. Adapter v1 passed at 93.8%</p>
       </div>
       <div class="task">
         <div class="big">Remote fleet-response</div>
-        <p>151 tool-use calls, one frozen prompt and tool list</p>
+        <p>254 tool-use calls, one frozen prompt and tool list</p>
       </div>
       <div class="rollout" aria-label="Adapter rollout path">
         <span class="stage">25 kept examples</span><span class="to"></span>
@@ -322,8 +322,8 @@
     <div>
       <h3>For the copilot</h3>
       <ul>
-        <li>Clear Mubit's review queue: 231 calls sent, first adapters pending</li>
-        <li>Keep traffic flowing so a passing version reaches live</li>
+        <li>Roll the triage adapter out: it passed its tests at 93.8%; Mubit's silent test comes next</li>
+        <li>Teach the responder: its first version scored 0% on multi-turn tool use</li>
         <li>Rate the logged wrong answers, so outcomes feed back</li>
       </ul>
     </div>
