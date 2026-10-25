@@ -397,15 +397,25 @@ const worksMat = mat(0xffffff, { map: stripes() });
 const zoneLabels = [];
 const slabs = {}, slabGeo = new THREE.BoxGeometry(BLOCK, 0.12, BLOCK);
 let seed = 7; const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+// Muted facades: real colour, but desaturated so hi-vis (the vehicle) and red (safety) stay the loudest things.
+const FACADES = [0x6F8796, 0x9C8B73, 0x8E6F66, 0x748C78, 0x8A8F95, 0x7D7A93];
+const leafMat = mat(0x5E8F62), trunkMat = mat(0x5B4A3C);
+function tree(x, z) {
+  const g = new THREE.Group(), s = 0.75 + rand() * 0.5;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.18, 8), trunkMat); trunk.position.y = 0.21;
+  const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(0.13, 0), leafMat); crown.position.y = 0.38;
+  crown.castShadow = true; g.add(trunk, crown); g.scale.setScalar(s); g.position.set(x, 0, z); return g;
+}
 for (const r of ROWS) for (let c = 1; c <= COLS; c++) {
   const z = "Z" + r + c, p = pos(z);
   const slab = new THREE.Mesh(slabGeo, mat(C.kerb)); slab.position.set(p.x, 0.06, p.z); slab.receiveShadow = true;
   scene.add(slab); slabs[z] = slab;
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
     const h = 0.22 + rand() * 0.6, b = new THREE.Mesh(new THREE.BoxGeometry(0.5, h, 0.5),
-      mat(new THREE.Color(0x66707a).offsetHSL(0, 0, (rand() - 0.5) * 0.08)));
+      mat(new THREE.Color(FACADES[Math.floor(rand() * FACADES.length)]).offsetHSL(0, 0, (rand() - 0.5) * 0.06)));
     b.position.set(p.x + dx * 0.66, 0.12 + h / 2, p.z + dz * 0.66); b.castShadow = b.receiveShadow = true; scene.add(b);
   }
+  for (const [dx, dz] of [[0, -0.66], [0.66, 0], [0, 0.66], [-0.66, 0]]) if (rand() < 0.45) scene.add(tree(p.x + dx, p.z + dz));
   zoneLabels.push([r + c, p]);
 }
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => {
