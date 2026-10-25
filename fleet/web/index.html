@@ -227,8 +227,10 @@ function handle(e) {
   if (e.t === "incident") {
     state.zone = e.zone; state.vehicle = e.vehicle_id; state.closed = e.closed_zones; state.routes = e.routes;
     $("s-model").textContent = e.model; drawVehicle(e.zone);
+    const opt = [...$("incident").options].find(o => o.textContent.startsWith(e.incident_id));
+    if (opt) $("incident").value = opt.value;   // keep the selector on the incident being shown, also during replays
     if (e.mubit && e.mubit.responder) $("s-adapter").textContent =
-      `Adapters: ${e.mubit.responder.toLowerCase()} (console, ${e.mubit.as_of})${e.mubit.note ? ". " + e.mubit.note + "." : ""}`;
+      `Adapters (Mubit console, ${e.mubit.as_of}): ${e.mubit.responder}.${e.mubit.note ? " " + e.mubit.note + "." : ""}`;
     log(`Help request from ${e.vehicle_id} in ${short(e.zone)}`, "The vehicle has stopped and asked for remote assistance.",
         "", e.replay ? "Replaying a recorded run" : "");
   } else if (e.t === "triage") {

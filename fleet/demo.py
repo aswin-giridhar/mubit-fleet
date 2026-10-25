@@ -137,7 +137,11 @@ class Handler(BaseHTTPRequestHandler):
             yield {"t": "error", "message": f"No recording named {name}."}
             return
         last = 0.0
+        # The footer shows the console status as of now (it carries its own timestamp), not as of the recording.
+        status = json.loads(MUBIT_STATUS.read_text(encoding="utf-8")) if MUBIT_STATUS.is_file() else {}
         for e in json.loads(path.read_text(encoding="utf-8")):
+            if e.get("t") == "incident":
+                e = {**e, "mubit": status}
             time.sleep(max(0.0, (e.get("at", last) - last) / max(speed, 0.1)))
             last = e.get("at", last)
             yield {**e, "replay": True}
