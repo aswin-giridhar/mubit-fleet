@@ -1,10 +1,20 @@
 # Fleet Response copilot
 
-**An AI first responder for stuck autonomous vehicles. Advice, not control. Every step distilled by Mubit into the fleet's own model.**
+**An AI first responder for stuck autonomous vehicles. Advice, not control. Mubit turns each repeated step into the fleet's own model, once it measures up.**
 
 Built at Mubit Night Shift (London, 24-25 Oct 2026).
 
 ![A robotaxi stopped by a ladder in its lane, with the street ahead closed by roadworks](docs/cover.jpg)
+
+**At a glance**
+
+- **What:** when an autonomous vehicle gets stuck, an AI agent investigates with tools and gives advice; code checks every
+  piece of advice before the vehicle may act on it, and anything unsafe goes to a human ("advice, not control").
+- **Mubit:** every call goes through Mubit, as two tasks. From our traffic, Mubit trained a Qwen3-4B adapter for triage that
+  matched Sonnet on **93.8%** of held-out tests (target 85%) and passed. The multi-turn tool-using responder's first adapter
+  scored 0%, so it stays on Sonnet: Mubit switches only when the small model does better.
+- **Measured:** on 40 identical incidents, Sonnet gave correct advice 90% of the time (median 9.5 s); Haiku 72% (5.3 s). The
+  safety rules live in code, so they hold whichever model answers.
 
 ## The problem
 
