@@ -15,13 +15,16 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from .mubit import SMALL, TEACHER
+from . import triage
+from .mubit import SMALL, TEACHER, BadAnswer, call_json
 from .responder import respond
 from .scenarios import generate
 from .world import world_for
 
 ROOT = Path(__file__).resolve().parent
 RECORDINGS = ROOT.parent / "results" / "demo"
+# What the Mubit console said about the tasks, copied by hand (there is no read API). Shown with its timestamp.
+MUBIT_STATUS = RECORDINGS / "mubit_status.json"
 INCIDENTS = generate(30, seed=61)
 MODELS = {"sonnet": TEACHER, "haiku": SMALL}
 
@@ -92,8 +95,21 @@ class Handler(BaseHTTPRequestHandler):
 
         def work() -> None:
             try:
-                # Demo runs are measurements, not training traffic: Mubit keeps metadata only.
-                respond(req, model=model, store=False, on_event=on_event, inject_fault=fault)
+                status = json.loads(MUBIT_STATUS.read_text(encoding="utf-8")) if MUBIT_STATUS.is_file() else {}
+                w = world_for(req)
+                on_event({"t": "incident", "incident_id": req.incident_id, "vehicle_id": req.vehicle_id,
+                          "zone": req.zone, "model": model, "routes": w.route_options, "reports": w.recent_events,
+                          "closed_zones": sorted(w.closed_zones), "mubit": status})
+                # Task 1 through Mubit: triage. Demo runs are measurements, so Mubit keeps metadata only.
+                try:
+                    pred, meta = call_json(triage.SYSTEM, triage.user_message(req), model=model,
+                                           session=req.incident_id, store=False)
+                    on_event({"t": "triage", "category": pred.get("category"), **meta})
+                except BadAnswer as exc:
+                    on_event({"t": "triage", "category": None, "error": str(exc)})
+                # Task 2 through Mubit: the responder. Its own incident event is already shown above.
+                respond(req, model=model, store=False, inject_fault=fault,
+                        on_event=lambda e: e.get("t") != "incident" and on_event(e))
             except Exception as exc:  # surface the failure in the UI instead of an endless spinner
                 on_event({"t": "error", "message": f"{type(exc).__name__}: {exc}"})
             events.put(None)

@@ -21,7 +21,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--asphalt); color: var(--lane); }
-  body { font: 400 15px/1.45 "Barlow", system-ui, sans-serif; font-variant-numeric: tabular-nums; min-height: 100dvh;
+  body { font: 400 17px/1.45 "Barlow", system-ui, sans-serif; font-variant-numeric: tabular-nums; min-height: 100dvh;
          display: grid; grid-template-rows: auto 1fr auto; }
   h1, .display { font-family: "Barlow Condensed", "Barlow", sans-serif; font-weight: 600; letter-spacing: .01em; }
   button, select { font: inherit; color: var(--lane); }
@@ -30,7 +30,7 @@
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 24px;
            border-bottom: 1px solid var(--kerb); }
   header h1 { margin: 0 12px 0 0; font-size: 26px; line-height: 1; }
-  header h1 span { color: var(--verge); font-weight: 500; }
+  header h1 span { font-weight: 500; }
   .control { display: flex; align-items: center; gap: 8px; color: var(--verge); }
   select { background: var(--kerb); border: 1px solid var(--kerb-up); border-radius: var(--r); padding: 7px 10px; max-width: 290px; }
   label.check { display: flex; align-items: center; gap: 8px; color: var(--lane); cursor: pointer; }
@@ -43,13 +43,13 @@
 
   main { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); min-height: 0; }
   .city { padding: 20px 24px; display: grid; grid-template-rows: 1fr auto; gap: 16px; min-height: 0; }
-  svg.grid { width: 100%; height: 100%; max-height: 62vh; }
+  svg.grid { width: 100%; height: calc(100dvh - 420px); min-height: 320px; }
   svg.grid[hidden], .city3d[hidden] { display: none; }
-  .city3d { width: 100%; height: 62vh; min-height: 360px; border-radius: var(--r); overflow: hidden; background: #262B2E; }
+  .city3d { width: 100%; height: calc(100dvh - 420px); min-height: 360px; border-radius: var(--r); overflow: hidden; background: #262B2E; }
   .log { border-left: 1px solid var(--kerb); overflow-y: auto; padding: 18px 22px 28px; max-height: calc(100dvh - 150px); }
 
   .verdict { border-radius: var(--r); padding: 14px 18px; background: var(--kerb); min-height: 64px; display: grid; align-content: center; }
-  .verdict .display { font-size: 24px; line-height: 1.1; }
+  .verdict .display { font-size: 30px; line-height: 1.1; }
   .verdict p { margin: 4px 0 0; color: var(--verge); max-width: 80ch; }
   .verdict.ok { box-shadow: inset 4px 0 0 var(--go); }
   .verdict.ok .display { color: var(--go); }
@@ -64,13 +64,15 @@
   .entry .what.fault { color: var(--stop); }
   .entry .detail { color: var(--verge); margin-top: 3px; }
   .entry .detail q { color: var(--lane); quotes: "\201C" "\201D"; }
-  .entry .meta { color: var(--verge); font-size: 13px; }
+  .entry .meta { color: var(--verge); font-size: 14px; }
+  .entry .task { color: var(--hivis); }
   .empty { color: var(--verge); max-width: 34ch; padding-top: 8px; }
 
-  footer { display: grid; grid-template-columns: repeat(5, auto) 1fr; gap: 8px 32px; padding: 12px 24px;
+  footer { display: grid; grid-template-columns: repeat(5, auto) minmax(0, 1fr); gap: 8px 32px; padding: 12px 24px;
            border-top: 1px solid var(--kerb); color: var(--verge); font-size: 13px; }
   footer b { display: block; color: var(--lane); font: 600 20px/1.1 "Barlow Condensed", sans-serif; }
-  footer .ids { justify-self: end; text-align: right; overflow-wrap: anywhere; max-width: 46ch; }
+  footer .mubit { justify-self: end; max-width: 64ch; border-left: 4px solid var(--hivis); padding-left: 14px; }
+  footer .mubit span { display: block; color: var(--lane); font-size: 15px; }
 
   .zone-label { font: 600 15px "Barlow Condensed", sans-serif; fill: var(--verge); }
   .route { fill: none; stroke: var(--verge); stroke-width: 3; stroke-dasharray: 6 7; stroke-linecap: round; opacity: .8; }
@@ -86,7 +88,7 @@
     main { grid-template-columns: 1fr; }
     .log { border-left: 0; border-top: 1px solid var(--kerb); max-height: none; }
     footer { grid-template-columns: repeat(2, 1fr); }
-    footer .ids { justify-self: start; text-align: left; grid-column: 1 / -1; }
+    footer .mubit { justify-self: start; grid-column: 1 / -1; }
   }
 </style>
 </head>
@@ -96,7 +98,7 @@
   <div class="control"><label for="incident">Incident</label><select id="incident"></select></div>
   <div class="control"><label for="model">Model</label>
     <select id="model"><option value="sonnet">claude-sonnet-4-5</option><option value="haiku">claude-haiku-4-5</option></select></div>
-  <label class="check"><input type="checkbox" id="fault"> Inject a fault</label>
+  <label class="check"><input type="checkbox" id="fault"> Test the safety check</label>
   <button class="run" id="run">Run incident</button>
   <button class="ghost" id="view" aria-pressed="true">Show 2D map</button>
   <span class="spacer"></span>
@@ -131,7 +133,7 @@
   <div>Tokens in / out<b id="s-tokens">0 / 0</b></div>
   <div>Time<b id="s-time">0.0 s</b></div>
   <div>Served by<b id="s-served">-</b></div>
-  <div class="ids" id="s-ids">Mubit request IDs appear here.</div>
+  <div class="mubit">Mubit<b id="s-tasks">Tasks: First-line triage, Remote fleet-response</b><span id="s-adapter">Adapter status appears when a run starts.</span></div>
 </footer>
 
 <script>
@@ -167,7 +169,6 @@ function stats() {
   $("s-calls").textContent = state.calls;
   $("s-tokens").textContent = state.tin.toLocaleString() + " / " + state.tout.toLocaleString();
   $("s-served").textContent = state.served;
-  $("s-ids").textContent = state.ids.length ? state.ids.join("  ") : "Mubit request IDs appear here.";
 }
 function log(what, detail, cls = "", meta = "") {
   const e = document.createElement("div"); e.className = "entry";
@@ -225,15 +226,24 @@ function handle(e) {
   if (e.t === "incident") {
     state.zone = e.zone; state.vehicle = e.vehicle_id; state.closed = e.closed_zones; state.routes = e.routes;
     $("s-model").textContent = e.model; drawVehicle(e.zone);
+    if (e.mubit && e.mubit.responder) $("s-adapter").textContent =
+      `Adapters: ${e.mubit.responder.toLowerCase()} (console, ${e.mubit.as_of})${e.mubit.note ? ". " + e.mubit.note + "." : ""}`;
     log(`Help request from ${e.vehicle_id} in ${short(e.zone)}`, "The vehicle has stopped and asked for remote assistance.",
         "", e.replay ? "Replaying a recorded run" : "");
+  } else if (e.t === "triage") {
+    if (e.request_id) { state.calls++; state.tin += e.input_tokens; state.tout += e.output_tokens; state.ids.push(e.request_id);
+      state.served = e.served_model.startsWith("claude") ? "Your provider" : e.served_model; stats(); }
+    log(`Triage: ${e.category ? e.category.replace(/_/g, " ") : "no answer"}`,
+        `Mubit task <span class="task">First-line triage</span>${e.latency_s ? `, answered in ${e.latency_s.toFixed(1)} s` : ""}`,
+        "agent", e.request_id || "");
   } else if (e.t === "thinking") {
     setVerdict("pending", "Working on it", `Model call ${e.step} is in progress.`);
   } else if (e.t === "reply") {
     $("s-time").textContent = (e.at || 0).toFixed(1) + " s";
     state.calls++; state.tin += e.tokens_in; state.tout += e.tokens_out; state.ids.push(e.request_id);
     state.served = e.served_model.startsWith("claude") ? "Your provider" : e.served_model; stats();
-    log(`Model call ${e.step} answered in ${e.latency_s.toFixed(1)} s`, "", "", `${e.request_id}  ${e.served_model}`);
+    log(`Model call ${e.step} answered in ${e.latency_s.toFixed(1)} s`, `Mubit task <span class="task">Remote fleet-response</span>`,
+        "", `${e.request_id}  ${e.served_model}`);
   } else if (e.t === "tool" && e.name !== "submit_advice") {
     log(TOOL_NAMES[e.name] || e.name, "", "agent");
   } else if (e.t === "result") {
@@ -246,7 +256,10 @@ function handle(e) {
     const a = e.input, extra = a.action === "reroute" ? ` via ${a.route_id}` : a.action === "wait" ? ` for ${a.wait_seconds} s` : "";
     log(`Advice: ${ACTION_TEXT[a.action] || a.action}${extra}`, esc(a.reason || ""), "agent");
   } else if (e.t === "fault") {
-    log("Injected fault: advice replaced with the fastest route", "This is a deliberate test of the safety check, not the model's answer.", "fault");
+    state.modelAdvice = e.original && ((ACTION_TEXT[e.original.action] || e.original.action) +
+      (e.original.route_id ? " via " + e.original.route_id : ""));
+    log("Safety-check test: advice replaced with the fastest route",
+        `The model's own advice was <q>${esc(state.modelAdvice || "none")}</q>. We swap in the fastest route on purpose to show the check.`, "fault");
   } else if (e.t === "verdict") {
     if (e.at) $("s-time").textContent = e.at.toFixed(1) + " s";
     if (e.advice && e.advice.action === "reroute") {
@@ -259,8 +272,10 @@ function handle(e) {
       setVerdict("blocked", "The model could not be reached. Escalated to a human.",
         "No advice was given, so the vehicle stays stopped and a person takes over. " + e.error.slice(0, 160));
     } else if (e.violations.length) {
-      setVerdict("blocked", "Rejected by code. Escalated to a human.",
-        e.violations.join("; ").replace(/Z([A-D][1-6])/g, "$1") + ".");
+      const why = e.violations.join("; ").replace(/Z([A-D][1-6])/g, "$1");
+      setVerdict("blocked", "Rejected by code. Escalated to a human.", e.injected
+        ? `Safety-check test: ${why}. The model itself had advised: ${state.modelAdvice || "nothing"}.`
+        : why + ".");
     } else {
       setVerdict("ok", `Accepted: ${ACTION_TEXT[e.final_action] || e.final_action}`,
         e.correct ? "Matches the fleet policy for this incident." :
@@ -286,7 +301,9 @@ function done() { if (source) source.close(); source = null; $("run").disabled =
   if (/Working/.test($("verdict").textContent)) setVerdict("pending", "Run finished", "Replay ended or the connection closed."); }
 async function loadRecordings(select) {
   const names = await (await fetch("/api/recordings")).json();
-  $("replay").innerHTML = names.length ? names.map(n => `<option>${esc(n)}</option>`).join("") : '<option value="">No recorded runs yet</option>';
+  const pretty = n => n.replace(/_claude-sonnet-4-5/, ", Sonnet").replace(/_claude-haiku-4-5/, ", Haiku").replace(/_fault$/, ", safety test");
+  $("replay").innerHTML = names.length ? names.map(n => `<option value="${esc(n)}">${esc(pretty(n))}</option>`).join("")
+                                       : '<option value="">No recorded runs yet</option>';
   if (select) $("replay").value = select;
 }
 async function init() {
@@ -330,9 +347,9 @@ host.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x262B2E);
-scene.fog = new THREE.Fog(0x262B2E, 18, 34);
+scene.fog = new THREE.Fog(0x262B2E, 22, 40);
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-camera.position.set(0, 15.5, 8.5);
+camera.position.set(0, 12, 8);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true; controls.maxPolarAngle = 1.25; controls.minDistance = 6; controls.maxDistance = 24;
 
@@ -354,15 +371,16 @@ for (let r = 0; r <= ROWS.length; r++) for (let x = -8; x <= 8; x += 0.7) {
   const m = new THREE.Mesh(dash, laneMat); m.position.set(x, 0.01, (r - ROWS.length / 2) * PITCH); scene.add(m); }
 
 // A label drawn on a canvas, so it uses the page's Barlow Condensed.
-function label(text, color = "#9AA39E", px = 64) {
+function label(text, color = "#9AA39E", px = 84, plate = null) {
   const cv = document.createElement("canvas"), ctx = cv.getContext("2d");
   ctx.font = `600 ${px}px "Barlow Condensed", sans-serif`;
   cv.width = Math.ceil(ctx.measureText(text).width) + 16; cv.height = px + 16;
-  ctx.font = `600 ${px}px "Barlow Condensed", sans-serif`; ctx.fillStyle = color; ctx.textBaseline = "top";
-  ctx.fillText(text, 8, 8);
+  ctx.font = `600 ${px}px "Barlow Condensed", sans-serif`;
+  if (plate) { ctx.fillStyle = plate; ctx.fillRect(0, 0, cv.width, cv.height); }
+  ctx.fillStyle = color; ctx.textBaseline = "top"; ctx.fillText(text, 8, 8);
   const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
-  s.scale.set(cv.width / cv.height * 0.42, 0.42, 1); s.renderOrder = 10; return s;
+  s.scale.set(cv.width / cv.height * 0.55, 0.55, 1); s.renderOrder = 10; return s;
 }
 function stripes() {
   const cv = document.createElement("canvas"); cv.width = cv.height = 128; const ctx = cv.getContext("2d");
@@ -397,18 +415,21 @@ let vehicle = null, routeMeshes = {}, drawing = null;
 const target = new THREE.Vector3(), lookGoal = new THREE.Vector3();
 
 function vehicleMesh(text) {
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.22, 0.34), mat(C.hivis, { roughness: 0.5 }));
-  body.position.y = 0.25; body.castShadow = true;
-  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.16, 0.3), mat(0x23282B, { roughness: 0.3 }));
-  cabin.position.set(-0.04, 0.42, 0);
-  const sensor = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.08, 16), mat(C.lane));
-  sensor.position.set(-0.04, 0.54, 0);
-  const tag = label(text, "#F2B33D", 56); tag.position.set(0, 0.95, 0);
-  g.add(body, cabin, sensor, tag); return g;
+  const g = new THREE.Group(), paint = mat(C.lane, { roughness: 0.45 }), glass = mat(0x1d2326, { roughness: 0.2 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.2, 0.4), paint); body.position.y = 0.22;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.17, 0.36), glass); cabin.position.set(-0.03, 0.4, 0);
+  const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.79, 0.05, 0.41), mat(C.hivis)); stripe.position.y = 0.2;
+  const dome = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.09, 0.1, 20), mat(C.hivis, { roughness: 0.3 }));
+  dome.position.set(-0.03, 0.54, 0);
+  const wheelGeo = new THREE.CylinderGeometry(0.085, 0.085, 0.06, 18), tyre = mat(0x15191b);
+  for (const [x, z] of [[-0.25, 0.2], [0.25, 0.2], [-0.25, -0.2], [0.25, -0.2]]) {
+    const w = new THREE.Mesh(wheelGeo, tyre); w.rotation.x = Math.PI / 2; w.position.set(x, 0.1, z); g.add(w); }
+  for (const m of [body, cabin, stripe, dome]) { m.castShadow = true; g.add(m); }
+  const tag = label(text, "#F2B33D", 72, "#23282B"); tag.position.set(0, 1.0, 0); g.add(tag);
+  return g;
 }
 function cone(x, z) {
-  const m = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 12), mat(C.hivis)); m.position.set(x, 0.26, z);
+  const m = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 12), mat(C.stop)); m.position.set(x, 0.26, z);
   m.castShadow = true; return m;
 }
 function tube(points, color, radius, opacity = 1) {
@@ -432,7 +453,7 @@ window.view3d = {
     const s = slabs[zone]; if (!s) return; s.material = worksMat;
     const p = pos(zone);
     for (const [dx, dz] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3], [0, 0]]) dynamic.add(cone(p.x + dx, p.z + dz));
-    const tag = label("Closed", "#E5624B", 56); tag.position.set(p.x, 0.75, p.z); dynamic.add(tag);
+    const tag = label("Closed", "#F2B33D", 72, "#23282B"); tag.position.set(p.x, 1.1, p.z); dynamic.add(tag);
   },
   routes(routes, origin) {
     for (const m of Object.values(routeMeshes)) dynamic.remove(m.mesh, m.tag);
